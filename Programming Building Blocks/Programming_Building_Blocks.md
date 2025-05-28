@@ -1,3 +1,87 @@
+# Table of Contents
+
+- [Statement Sequence](#statement-sequence)
+- [Branching](#branching)
+  - [Branching Statements](#branching-statements)
+    - [Basic Concepts](#basic-concepts)
+    - [Examples](#examples)
+  - [Expression Evaluation](#expression-evaluation)
+    - [Boolean Expressions as Conditions](#boolean-expressions-as-conditions)
+    - [Side Effect of Expressions](#side-effect-of-expressions)
+    - [Expression Evaluation Order](#expression-evaluation-order)
+      - [Operator Precedence](#operator-precedence)
+      - [Operator Associativity](#operator-associativity)
+      - [Operand/Subexpression Evaluation Order](#operandsubexpression-evaluation-order)
+      - [Further Reading(Optional)](#further-readingoptional)
+    - [Short-Circuit Evaluation](#short-circuit-evaluation)
+    - [Applying Mathematical Logic](#applying-mathematical-logic)
+      - [De Morgan’s Laws](#de-morgans-laws)
+      - [Distributive Laws](#distributive-laws)
+      - [Absorption Laws](#absorption-laws)
+      - [Exclusive OR (XOR)](#exclusive-or-xor)
+  - [Tricks and Caveats](#tricks-and-caveats)
+    - [Invert Complicated Conditions](#invert-complicated-conditions)
+    - [Treat Overlapping Conditions Carefully](#treat-overlapping-conditions-carefully)
+    - [Put the Most Likely Branches/Expressions First](#put-the-most-likely-branchesexpressions-first)
+      - [Moving Most Likely Branches Closer to the Top](#moving-most-likely-branches-closer-to-the-top)
+      - [Moving Most Likely Boolean Expressions Closer to the Left](#moving-most-likely-boolean-expressions-closer-to-the-left)
+      - [Putting Simplest or Cheapest Checks First (when probabilities are similar)](#putting-simplest-or-cheapest-checks-first-when-probabilities-are-similar)
+    - [Use Guard Clauses to Flatten Nested Branches](#use-guard-clauses-to-flatten-nested-branches)
+  - [Recommended Leetcode Problems](#recommended-leetcode-problems)
+- [Loop/Iteration](#loopiteration)
+  - [Idea of Repetition](#idea-of-repetition)
+  - [Loop Statements](#loop-statements)
+  - [Methodical Loop Analysis](#methodical-loop-analysis)
+    - [Elements of a Loop](#elements-of-a-loop)
+    - [Loop Goal](#loop-goal)
+    - [Loop Premise](#loop-premise)
+    - [Loop Initialization](#loop-initialization)
+    - [Loop Conditions](#loop-conditions)
+    - [Loop Termination](#loop-termination)
+    - [Iteration Goal](#iteration-goal)
+    - [Loop Body](#loop-body)
+    - [Edge Cases](#edge-cases)
+    - [Loop Variant](#loop-variant)
+    - [Loop Invariant](#loop-invariant)
+      - [Definition](#definition)
+      - [Importance](#importance)
+      - [Loop Variable Semantics](#loop-variable-semantics)
+      - [Good Questions to Ask](#good-questions-to-ask)
+      - [More Examples](#more-examples)
+  - [Methodical Loop Implementation](#methodical-loop-implementation)
+    - [From Analysis to Implementation](#from-analysis-to-implementation)
+    - [Bubble Sort](#bubble-sort)
+      - [High-Level Design](#high-level-design)
+      - [Mid-Level Design](#mid-level-design)
+      - [Outer Loop Implementation](#outer-loop-implementation)
+      - [Inner Loop Implementation](#inner-loop-implementation)
+      - [Complete Implementation](#complete-implementation)
+      - [Property-Based Testing](#property-based-testing)
+      - [Define Variables Wisely](#define-variables-wisely)
+      - [Optimization](#optimization)
+    - [Insertion Sort](#insertion-sort)
+      - [High-Level Design](#high-level-design)
+      - [Mid-Level Design](#mid-level-design)
+      - [Outer Loop Implementation](#outer-loop-implementation)
+      - [Inner Loop Implementation](#inner-loop-implementation)
+      - [Complete Implementation](#complete-implementation)
+      - [Alternative Implementation and Optimization](#alternative-implementation-and-optimization)
+        - [Alternative Search while Shifting](#alternative-search-while-shifting)
+        - [Adjacent Swapping](#adjacent-swapping)
+        - [Linear Search then Shifting](#linear-search-then-shifting)
+        - [Binary Search then Shifting](#binary-search-then-shifting)
+    - [Three-Way Partitioning](#three-way-partitioning)
+  - [Recommended Leetcode Problems](#recommended-leetcode-problems)
+- [Recursion](#recursion)
+- [Documentation](#documentation)
+  - [Block/Loop Documentation](#blockloop-documentation)
+  - [Function/Method Documentation](#functionmethod-documentation)
+  - [Reference Materials](#reference-materials)
+- [Master Your Arsenal](#master-your-arsenal)
+  - [Built-In Library & Functions](#built-in-library-functions)
+  - [Classic Algorithms & Data Structures](#classic-algorithms-data-structures)
+  - [Build Your Own Templates](#build-your-own-templates)
+
 # Statement Sequence
 
 A statement is a complete instruction that performs some action. In imperative programming languages, statements are the basic unit of execution. There are different types of statements, such as Declaration, Assignment, Function/Method Invocation etc.
@@ -57,7 +141,7 @@ if (condition_1) {
 
 For complicated branching statements, you could use a **decision tree** to visualize it. The below is an example, and it could be further broken into more branches if we look inside each condition and the relevant variables. For example, if `condition_1` has $N$ boolean expressions and $M$ variables involved in total, we can break the diamond of `condition_1` into a sub decision tree.
 
-<img src="img\branching_statement_as_decision_tree.png" alt="branching_statement_as_decision_tree" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img\branching_statement_as_decision_tree.png" alt="branching_statement_as_decision_tree" style="width: 70%; height: 70%; display: block; margin-left: auto; margin-right: auto;">
 
 From a mathematical perspective, **set theory** helps you understand which branch will execute for which subset of variable assignments, and **venn diagrams** help you visualize the relations of different sets. For example, let's suppose the venn diagram for the above branching statements is as below.
 
@@ -74,7 +158,7 @@ Programmers have different but equivalent ways of implementing branching, which 
 
 ### Examples
 
-#### Example 1
+**Example 1**
 
 ```java
 // Code_Block_1
@@ -101,8 +185,7 @@ But in practical programming, you may want to execute something as long as <code
 Also notice that due to short-circuit evaluation, in <code>Code_Block_2</code>, if <code>condition_1</code> evaluates to false, then <code>condition_2</code> won't be evaluated.
 </details>
 
-#### Example 2
-
+**Example 2**
 ```java
 // Code_Block_3
 if (condition_1) {
@@ -133,7 +216,7 @@ But even when they are equivalent, <code>condition_1</code> will always be evalu
 Notice that in <code>Code_Block_4</code>, even though <code>condition_1</code> is evaluated before, the program won't remember the result of the evaluation and will evaluate it again in the second boolean expression.
 </details>
 
-#### Example 3
+**Example 3**
 
 ```java
 // Code_Block_5
@@ -164,7 +247,7 @@ In <code>Code_Block_5</code>, only one of the branches will execute, but in <cod
 And on top of that,  <code>condition_1</code> will always be evaluated twice.
 </details>
 
-#### Example 4
+**Example 4**
 
 ```java
 // Code_Block_7
@@ -221,7 +304,7 @@ For <code>Code_Block_11</code> and <code>Code_Block_12</code>, although both con
 To conclude, if both conditions have no side effects, then all code blocks are logically equivalent, but <code>Code_Block_11</code> and <code>Code_Block_12</code> will always evaluate both conditions. Otherwise, you have to analyze the equivalence case by case. This is one of the reasons why refactoring existing code could be hard: if a method/function returns boolean value, and you need to modify its side effects, you need to inspect all places that invoke it.
 </details>
 
-#### Practical Examples
+**Practical Examples**
 
 One of the simplest application of branching is to determine the oddity of an integer number:
 
@@ -1389,17 +1472,17 @@ while (true) {
     - Termination $P(n)$: When the loop ends, the invariant combined with loop conditions implies the loop goal.
 
 ```plain
-                                                        [Initialization]
-                                                                ↓
-                                                      Base Case: P(0) holds
-                                                                ↓
-                                                           [Loop Entry]
-                                                                ↓
-                                                Inductive Step: If P(i), show P(i+1)
-                                                                ↓
-                                                        [Condition Fails]
-                                                                ↓
-                                               Termination: P(n) + ¬Condition ⇒ Goal
+                                        [Initialization]
+                                                ↓
+                                        Base Case: P(0) holds
+                                                ↓
+                                            [Loop Entry]
+                                                ↓
+                                Inductive Step: If P(i), show P(i+1)
+                                                ↓
+                                        [Condition Fails]
+                                                ↓
+                                Termination: P(n) + ¬Condition ⇒ Goal
 ```
 
 - Think about the following questions when using or identifying loop invariants:
@@ -1825,7 +1908,7 @@ Compared to high-level design, which describes the conceptual flow of the algori
 - Comparing the adjacent elements in the array repeatedly strongly suggests using loop/iteration. 
 - According to the description of the steps, the comparison of adjacent elements will be repeated. But even if we finish comparing all adjacent pairs of elements, we only find the smallest element and place it on the leftmost position, which is still far from sorting the whole array. 
 - But if we repeat the above process(repetition of repetition), the sorted part of the array grows and the unsorted part of the array shrinks, and eventually the sorted part will be the whole array and the unsorted part will be an empty array. 
-- In the process of repetition, we make sure each time we modified the sorted subarray, we only append one element to its end without disrupting the already sorted prefix, an element that is no less than the maximum of the sorted subarray, and that element is also the minimum in the unsorted array. This makes sure all elements in the unsorted subarray are no less than those in the sorted subarray.
+- In the process of repetition, we make sure each time we modify the sorted subarray, we only append one element to its end without disrupting the already sorted prefix, an element that is no less than the maximum of the sorted subarray, and that element is also the minimum in the unsorted array. This makes sure all elements in the unsorted subarray are no less than those in the sorted subarray.
 - This analysis suggests we need **two layers of nested loop**: the first repetition is the inner loop and the second is the outer loop.
 - *Side Note:* when we say an array or subarray is unsorted, it means that we are uncertain about its sortedness. Although it could already sorted, but without iterating through the element we cannot assert its sortedness.
 
