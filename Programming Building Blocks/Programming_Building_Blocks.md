@@ -1820,8 +1820,7 @@ for (int i = 0; i < nums.length; i++) {
     - If $sum >= bound$ is true, then the loop invariant doesn't hold anymore, and in this case $sum$ is the summation of subarray $nums[0...i]$, not $nums[0...i-1]$. Although $i$ is not accessible after termination, in general, we could have defined $i$ outside of the `for` loop.
     - This is why we need to be careful about early exit, as they could violate invariants.
 
-- Notice that the above code is equivalent to the following:
-
+Notice that the above code is equivalent to the following:
 ```java
 int sum = 0;
 int i = 0;
@@ -1831,7 +1830,6 @@ while (i < nums.length) {
     i++;
 }
 ```
-
 ---
 
 **Binary Search**
@@ -1988,7 +1986,7 @@ In the following discussion, we will use $n$ to replace $a.length$ for brevity.
     - You may think that we can count the number of iteration.
     - Suppose the number of iterations is $X$, and in the `for` loop header we can let $i$ go from $1$ to $X$, or equivalently from $0$ to $X-1$, from $X$ to $1$, and from $X-1$ to $0$. You can choose one based on your coding habit and preference. But what is the value of $X$ exactly? 
     - Again, let's go back to the graph. Take a look at the size of the unsorted sub-array(or the sorted subarray because they complement each other). 
-    - Initially its size is $n$, for each iteration it decrement by $1$, and eventually it's $0$, which is the case when the loop terminate, so the last valid value should be $1$. From $n$ to $1$, that is $n$ iterations, so $X=n$. But if you take a closer look, we don't have to find the minimum element or exchange any pair of elements when the sub-array has only 1 element, so it's also ok to leave the last valid value to be $2$.
+    - Initially its size is $n$, for each iteration it decrement by $1$, and eventually it's $0$, which is the case when the loop terminate, so the last valid value should be $1$. From $n$ to $1$, that is $n$ iterations, so $X=n$. But if you take a closer look, we don't have to find the minimum element or exchange any pair of elements when the sub-array has only 1 element, so it's ok to leave the last valid value to be $2$.
     - It' totally normal that you modify your code, for example the `for` loop header, back and forth when writing the loop to change the initial value of the loop index $i$ or its final value. Because before you fully implement the loop body, you only have an abstract overview of what you algorithm does and how it does the job. After you finish it, you can use the techniques of loop analysis to see if there are mistakes and correct them accordingly. That being said, if you are uncertain about the loop range, like the start and end valid value for $i$, leave it there and go on to finish the loop body first and then come back to decide the proper values.
     - However, most of the time, counting the number of iterations and use it as the loop range is not the best choice. It may not be obvious in this case, but in a lot of algorithms, it would make your code harder to write, mainly because it doesn't connect closely enough to the loop variant, what we need to do in the loop body and how the state of the loop evolves.
 - **Variant-Based Definition**:
