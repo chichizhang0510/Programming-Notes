@@ -8,10 +8,10 @@
   - [Expression Evaluation](#expression-evaluation)
     - [Boolean Expressions as Conditions](#boolean-expressions-as-conditions)
     - [Side Effect of Expressions](#side-effect-of-expressions)
-    - [Expression Evaluation](#expression-evaluation)
+    - [Expression Evaluation Order](#expression-evaluation-order)
       - [Operator Precedence](#operator-precedence)
       - [Operator Associativity](#operator-associativity)
-      - [Operand/Subexpression Evaluation Order](#operandsubexpression-evaluation-order)
+      - [Operand Evaluation Order](#operand-evaluation-order)
       - [Further Reading(Optional)](#further-readingoptional)
     - [Short-Circuit Evaluation](#short-circuit-evaluation)
     - [Applying Mathematical Logic](#applying-mathematical-logic)
@@ -22,10 +22,10 @@
   - [Tricks and Caveats](#tricks-and-caveats)
     - [Invert Complicated Conditions](#invert-complicated-conditions)
     - [Treat Overlapping Conditions Carefully](#treat-overlapping-conditions-carefully)
-    - [Put the Most Likely First](#put-the-most-likely-first)
+    - [Reordering Branching Code](#reordering-branching-code)
       - [Basic Ideas](#basic-ideas)
       - [Moving Likely Branches Closer to the Top](#moving-likely-branches-closer-to-the-top)
-      - [Moving Likely Boolean Expressions Closer to the Left](#moving-likely-boolean-expressions-closer-to-the-left)
+      - [Moving Likely Expressions Closer to the Left](#moving-likely-expressions-closer-to-the-left)
       - [Putting Simplest or Cheapest Checks First](#putting-simplest-or-cheapest-checks-first)
     - [Use Guard Clauses to Flatten Nested Branches](#use-guard-clauses-to-flatten-nested-branches)
   - [Recommended Leetcode Problems](#recommended-leetcode-problems)
@@ -1021,7 +1021,7 @@ while (true) {
 
 ### Elements of a Loop
 
-When analyzing or designing a loop, especially in algorithmic problems, it’s helpful to decompose it into fundamental elements, which are closely related to each other. The following are the core elements of a loop:
+When analyzing or designing a loop, especially for algorithmic problems, it helps to break it down into fundamental elements. These elements are interrelated, and considering each of them will guide you to a correct and efficient loop design. The core elements include:
 - **Loop Goal**: the target/objective of this loop, what it aims to accomplish.
 - **Loop Premise**: for this loop to operate correctly, what premise must be true.
 - **Loop Initialization**: setup code that initializes loop control variables and other related variables before entering the loop.
@@ -1348,7 +1348,6 @@ if (nums == null || nums.length == 0) return -1; // handle empty array explicitl
     - `for (i = a; i < b; i++)` is equivalent to `for(i = a; i <= b - 1; i++)`, both iterate `b - a` times. The loop range is `[a...b-1]`.
     - `for (i = a; i > b; i--)` is equivalent to `for(i = a; i >= b + 1; i--)`, both iterate `a - b` times. The loop range is `[b+1...a]`.
 - There is a lot to talk about how the loop control variables could be updated.
-    - **Idempotent Loops**: Some loops can run multiple times with no state change (idempotent behavior).
     - **Order-sensitive Loops**: Some loops depend on iteration order (stateful accumulations), e.g., DP, prefix sums.
     - **Order-agnostic Loops**: Some loops don’t depend on iteration order (map-reduce style parallel loops), e.g., summing independent values.
     - **Iteration direction**: Typically when traversing a list/array, iterating from left to right and right to left are equivalent(may requires some conversion on how we initialize and update the loop control variables). Sometimes one direction would be easier than the other and for some algorithms only one of the directions work.
