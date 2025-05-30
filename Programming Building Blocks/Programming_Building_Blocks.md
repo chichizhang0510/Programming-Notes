@@ -1022,43 +1022,44 @@ while (true) {
 ### Elements of a Loop
 
 When analyzing or designing a loop, especially for algorithmic problems, it helps to break it down into fundamental elements. These elements are interrelated, and considering each of them will guide you to a correct and efficient loop design. The core elements include:
-- **Loop Goal**: the target/objective of this loop, what it aims to accomplish.
-- **Loop Premise**: for this loop to operate correctly, what premise must be true.
-- **Loop Initialization**: setup code that initializes loop control variables and other related variables before entering the loop.
-- **Loop Condition**: the conditions that determines whether the loop should continue or terminate(exit condition).
+- **Loop Goal**: the high-level objective of the loop, what it aims to accomplish.
+- **Loop Premise**: for this loop to operate correctly, what assumptions or conditions must be true.
+- **Loop Initialization**: setup code that initializes loop control variables and other related variables before loop starts.
+- **Loop Condition**: the conditions that determines whether the loop should continue or terminate.
 - **Loop Termination**: what we know after the loop terminates and whether the variables have correct and useful values.
-- **Iteration Goal**: the goal or the side-effect of each iteration.
+- **Iteration Goal**: the purpose or effect of each individual iteration relative to the overall goal.
 - **Loop Body**: the block of code executed in each iteration of the loop.
-- **Edge Cases**: initialization, termination and corner cases.
-- **Loop Variant**: abstract quantity that decreases in each iteration and drives the loop towards termination.
-- **Loop Invariant**: useful properties of variables used inside the loop that are true before(and after) each iteration and can help reason about the correctness of the loop.
+- **Edge Cases**: initialization, termination and corner/special cases.
+- **Loop Variant**: abstract quantity that strictly decreases in each iteration, ensuring the loop will eventually terminate.
+- **Loop Invariant**: useful properties of variables used inside the loop that are true before and after each iteration and can help reason about the correctness of the loop.
 
-In addition, we can also mention the definition of variables(suc as loop control variables) used in the loop, which is optional but provides more information in the documentation.
+In addition, we can also mention the definition of variables used in the loop, such as loop control variables and other state variables, which is optional but provides more information in the documentation.
 
-To make a loop correct, all of these elements are important, and the following sections will elaborate each of them. We confine the discussion to single-thread algorithmic programs.
+To write a correct loop, all these elements should be considered. In the following sections, we will delve into each of them in detail. We will focus on single-threaded, algorithmic loops (typical for competitive programming or algorithm exercises).
 
 I personally think **Loop Invariant** is the most valuable and important thing about a loop that helps programmer implement and reason about the loop. In a coding interview, if you cannot explain the loop invariant of a particular loop, the interviewer may think you don't understand your code and cannot prove its correctness.
 
 Asking yourself the following questions and perhaps documenting them in the code comment would be helpful:
 - what's the loop invariant?
-- what's the meaning of each variable/loop
-- what's the goal/objective of each iteration
+- What's the loop variant? Why does it guarantee the termination?
+- what's the meaning of each variable/loop?
+- what's the goal/objective of each iteration?
 - what happens after each iteration?
 - what do we know after the loop terminates?
 
 Relationships Between Elements:
-1. **Loop Premise** holds -> **Loop Initialization** sets variables -> **Loop Invariant** established before first iteration.
-2. **Loop Condition checked** -> If true: **Loop Body** transforms state from iteration $i-1$ to $i$, achieving **Iteration Goal**.
+1. **Loop Premise** holds initially -> **Loop Initialization** sets variables -> **Loop Invariant** established before first iteration.
+2. **Loop Condition** is checked -> If true: **Loop Body** transforms state from iteration $i-1$ to $i$, achieving **Iteration Goal**.
 3. **Loop Variant** progresses via updates -> **Loop Invariant** maintained.
 4. **Loop Termination** when condition fails or early exit occurs.
-5. **Loop Goal** achieved after termination, due to **Loop Invariant** being true.
-6. **Edge cases** ensure correctness at boundaries (first, last, zero iterations).
+5. **Loop Goal** achieved after termination, if we have maintained **Loop Invariant**.
+6. **Edge cases** ensure correctness at boundaries (first, last, zero iterations, etc.).
 
 ### Loop Goal
 
-**Definition**: Loop goal is the high-level objective that the loop seeks to accomplish.
+**Definition**: The loop goal is the high-level objective that the loop seeks to accomplish by the time it finishes.
 
-**Relation**: It’s equivalent to the postconditions of a function/method, as we want the goal to be true once the loop terminates. 
+**Relation**: It’s equivalent to the postconditions of a function/method, as we want the goal to be true after the loop terminates. 
 
 **Importance**: It establishes correctness criteria for the loop.
 
@@ -1067,7 +1068,7 @@ Relationships Between Elements:
 
 **Concept Examples**:
 - Find the sum of all elements.
-- Check if the array contains duplicates.
+- Determine if an array contains any duplicate values.
 - Find the target value in a sorted array.
 
 **Code Example**:
@@ -1082,27 +1083,27 @@ for (int num : nums) {
 
 ### Loop Premise
 
-**Definition**: The required assumptions for the loop to operate correctly.
+**Definition**: The loop premise is any assumption or precondition required for the loop to operate correctly.
 
 **Relation**: It's equivalent to the preconditions of a function/method.
 
-**Importance**: Prevents runtime errors and logical faults.
+**Importance**: Prevents runtime errors and logical mistakes.
 
 **Notes**:
-- To make loop premises true, we often need to do some work before the loop. For example, if we want to use binary search to search for a number in an array, we need to first sort it. But this kind of actions are not part of the loop. 
+- To make loop premises true, we often need to do some work before the loop. For example, if we want to use binary search on an array, a premise is that the array must be sorted first. Such preparation (sorting, in this case) is done before the loop and not part of the loop itself.
 - Loop premises are established outside the loop. Do not confuse it with loop initialization.
 - Loop premises are often checked explicitly using guard clauses.
-- Sometimes loop premise are too trivial and obvious so it won't be mentioned. For example, iterating through a collection that is guaranteed to be non-null and not empty.
+- Sometimes loop premise are obvious and not explicitly mentioned. For example, iterating through a collection that is guaranteed to be non-null.
 
 **Concept Examples**:
-- The array is non-null and not empty. This premise is common all loop that read or write an array.
+- The array is non-null. This premise is common all loop that read or write an array.
 - The array is sorted in ascending order. This premise is common for many algorithms, for example, using binary search on an unsorted array doesn't make sense.
 
 **Code Example**:
 ```java
 // Loop premise: nums is non-null and not empty.
-if (nums == null || nums.length == 0) return -1; // safeguard loop premise
-int max = Integer.MIN_VALUE; // This is loop initialization, not used to ensure loop premise
+if (nums == null || nums.length == 0) return -1; // guard clause to enforce premise
+int max = Integer.MIN_VALUE; // Loop initialization (unrelated to premise enforcement)
 for (int i = 0; i < nums.length; i++)
     if (nums[i] > max)
         max = nums[i];
@@ -1110,22 +1111,23 @@ for (int i = 0; i < nums.length; i++)
 
 ### Loop Initialization
 
-**Definition**: Setup code that initializes loop control variables other related variables before entering the main loop. 
+**Definition**: This is the setup code that initializes loop control variables and other related variables before entering the main loop. 
 
 **Relation**: Takes place before the main loop body. How the variables should be initialized should be determined by the loop variants. It also ensures loop invariants hold before first iteration. 
 
 **Importance**: Guarantees loop starts correctly, establishing loop invariant initially.
 
 **Notes**:
-- Logically, loop initialization is part of the loop, but it's physically outside the main loop structure. In fact, a loop will run indefinitely if it only access variables declared inside the loop.
-- Loop Initialization is not used to satisfy the loop premises. It could be simple or complicated. For example, in many sliding window problems, we need to initialize the window variable before going into the main loop, and that initialization itself involves a loop.
-- Initialization is important because not everything we need to do should be included inside the loop. Only those that are exactly same in nature requires repetition. 
-- Sometimes the first case(s) work differently from the rest, and it's a good practice to handle them in the initialization phase.
+- Logically, loop initialization is part of the loop’s overall process, but it's physically outside the main loop structure. In fact, a loop will run indefinitely if it only access variables declared inside the loop. If you forget to initialize properly, your loop might run indefinitely or produce incorrect results.
+- Loop Initialization is not about satisfying the loop premise. It’s about preparing variables for use inside the loop. 
+- It could be simple or complicated. For example, in many sliding window algorithms, we need to initialize the window variable before going into the main loop, and that initialization itself involves a mini-loop.
+- Initialization is important because not everything we need to do should be included inside the loop. Only those that are exactly same in nature requires repetition. Instead, if something only needs to happen once, do it outside, either before or after the loop.
+- Sometimes the first case(s) work differently from the rest, and it's a good practice to handle them in the initialization phase rather than complicating the loop logic to account for them. Proper initialization often handles any first case(s) or set up so the loop body can focus on the repetitive step.
 
 **Concept Examples**:
-- Loop counters (`int i = 0;`)
-- Two pointers (`int left = 0, right = nums.length - 1;`)
-- Collection initialization (`List<Integer> list = new ArrayList<>();`)
+- Loop counters, e.g., `int i = 0;`
+- Two pointers, e.g., `int left = 0, right = nums.length - 1;`
+- Collection initialization, e.g., `List<Integer> list = new ArrayList<>();`
 
 **Code Examples**:
 ```java
@@ -1160,24 +1162,25 @@ for (int i = 0; i < nums.length; i++)
 
 **Definition**: The boolean expressions determining whether to continue or terminate the loop.
 
-**Relation**: Provides inferred knowledge after the loop terminates as we know loop condition doesn't hold or one of the exit condition is true. It's also closely connected to the loop variants.
+**Relation**: Provides inferred knowledge after the loop terminates as we know loop condition doesn't hold or one of the exit condition is true. It's also closely connected to the loop variants because it involves the loop control variable which moves toward termination.
 
 **Importance**: Controls execution flow, ensures termination, prevents infinite loops and contributes to loop goal.
 
 **Notes**:
-- No loop is supposed to run forever, so we need to use loop conditions that can guarantee the termination of the loop. Notice that there are practical long running programs that are supposed to have no exit condition and run forever until the program is shut down from outside. So our discussion is confine to algorithmic programs.
-- Loop conditions include when the loop should continue as well as when the loop should terminate. Some people distinguish between the two:
-    - **Loop Condition** is continuation logic, for example `while (condition) { statements }`.
-    - **Exit Condition** is early stopping logic, for example `if (condition) break;`. 
-    - Here we adopt the broad definition of loop condition and when we will use the term exit conditions when we discuss specifically the case of breaking out of the loop inside it.
-    - Thus the location of loop condition is flexible, as it could be at the beginning of each iteration, or inside the loop body.
-- Always ensure loop conditions are clear and capable of eventually becoming false. Due to the if-else structure, sometimes the exit condition is not explicitly defined. Make the conditions explicit or implicit according your needs.
-- Loop conditions should be determined by loop variants. For example when we use a loop index, then the loop range could be connected with the loop conditions. If we want the index $i$ to vary from $0$ to $n - 1$, then the loop condition would be $i < n$. Besides loop index, there are other forms.
+- No loop should run forever, so use loop conditions that can guarantee the termination. 
+    - Notice that there are practical long running programs that are supposed to have no exit condition and run forever until the program is shut down from outside. But those are outside our scope, as our discussion is confine to algorithmic programs.
+- Loop conditions include when the loop should continue as well as when the loop should terminate. To avoid confusion:
+    - We’ll call the condition in the loop’s structure (while/do-while or the second part of a for loop) the **continuation condition**, for example `while (condition) { statements }`.
+    - We’ll call any condition inside the loop that causes an early exit an **exit condition**, for example `if (condition) break;`. 
+    - In our discussion, "loop condition" can broadly mean both. We'll explicitly mention "exit condition" when we’re talking about something like a `break` or `return` inside the loop.
+    - Thus the placement of loop condition is flexible, as it could be at the beginning of each iteration, or inside the loop body.
+- Always ensure loop conditions are clear and capable of eventually terminating the loop. Due to the `if-else` structure, sometimes the exit condition is not explicitly defined. Make the conditions explicit or implicit according to your needs.
+- Loop conditions should be determined by loop variants. For example when we use a loop index $i$, then the loop range could be connected with the loop conditions. If we want the index $i$ to vary from $0$ to $n - 1$, then the loop condition would be $i < n$. Besides loop index, there are other forms. The loop condition should reflect the loop variant reaching its target (in this case, $i$ reaching $n$).
 
 **Concept Examples**:
-- Index bound checks (`i < n`). For example, in `for` loops, the loop condition could be that the value of the loop index must be within a certain range.
-- Pointer crossing checks (`left <= right`). For example, in binary search, which is often implemented as a `while` loop, the loop condition is that the subarray delimited by $[left...right]$ is not empty.
-- Remaining elements in the collection (`!collection.isEmpty()`)
+- Index bound checks `i < n`. For example, in `for` loops, the loop condition could be that the value of the loop index must be within a certain range.
+- Pointer crossing checks `left <= right`. For example, in binary search, which is often implemented as a `while` loop, the loop condition is that the subarray delimited by $[left...right]$ is not empty.
+- Remaining elements in the collection `!collection.isEmpty()`, which means loop until a collection is empty.
 
 **Code Example**:
 
@@ -1194,9 +1197,9 @@ while (left <= right) { // Loop condition for binary search. It continues if the
 
 ### Loop Termination
 
-**Definition**: When and why the loop stops; what is known after termination.
+**Definition**: Describes the point at which and reason why the loop stops running, and what is true once it has stopped.
 
-**Relation**: Closely connected with loop initialization, loop variants and loop conditions. We need all relevant information to determine the properties of the variables after termination.
+**Relation**: Closely connected with loop initialization, loop variants and loop conditions. Given all that information, we can deduce properties of variables after the loop ends.
 
 **Importance**: Critical for reasoning about final outcomes. 
 
@@ -1206,9 +1209,8 @@ while (left <= right) { // Loop condition for binary search. It continues if the
 - For a correct loop implementation, loop invariant and loop goal should be true after termination. We need to be very clear about what properties about what variables we have after the loop ends.
 
 **Concept Examples**:
-- If the only loop condition is (`i < n`) and no other exit conditions, $i$ is initially $0$, $n$ is constant and initially positive, $i$ is incremented for each iteration. we know that after the loop terminates, $i = n$.
-- If the only loop condition is (`!collection.isEmpty()`), we know that after the loop terminates the collection is empty.
-
+- If the only loop condition is `i < n`, with $i$ initially being $0$ and incrementing by 1 for each iteration, and $n$ is constant and initially positive, we know that after the loop terminates, $i = n$.
+- If the only loop condition is `!collection.isEmpty()`, we know that after the loop terminates the collection is empty.
 
 **Code Example**:
 ```java
@@ -1217,24 +1219,26 @@ boolean found = false; // Initialization
 for (int num : nums) {
     if (num == target) { // Exit condition
         found = true;
-        break; // early exit
+        break; // early exit when target is found
     }
 }
-// After termination: if found is true then target exists in the nums, otherwise it's not (because found is initially false)
+// After termination: if found is true then target exists in the nums, 
+// otherwise the loop ran to completion and the target was not found
 ```
 
 ### Iteration Goal
 
-**Definition**: The per-iteration objective (intermediate step toward loop goal).
+**Definition**: The per-iteration objective is supposed to accomplish as a step toward the loop’s overall goal.
 
-**Relation**: Iteration goal is defined using loop invariants, and achieved through the loop body.
+**Relation**: Iteration goal is defined in terms of loop invariants, and achieved through the loop body.
 
 **Importance**: Provides logical clarity per iteration, ensures correctness and progress.
 
 **Notes**:
-- Iteration goal describes what each individual iteration aims to accomplish. Typically with loop invariant we can know the properties of the `#i-1` iteration, and using these properties what we want to accomplish for the `#i` iteration.
-- Iteration goal typically involves side-effects, because there is no way to terminate a loop if we only read but not modify variables. Notice that this is only true for single-thread programs. In a multi-threading setting, the variables we access in a loop could be modified by other threads.
-- Loop could often be an inductive process, where each iteration is a step to the next.
+- Iteration goal describes what each individual iteration aims to accomplish. Typically with loop invariant we can know the properties of the `#i-1` iteration, and using these properties we can deduce what we want to accomplish for the `#i` iteration.
+- Iteration goal typically involves modification on some variables and changing some states, because there is no way to terminate a loop if we only read but not modify variables.
+    - Notice that this is only true for single-thread programs. In a multi-threading setting, the variables we access in a loop could be modified by other threads. In this case, the loop relies on an external factor to break it, which is unusual in algorithmic contexts.
+- Loop could often be an inductive process, where each iteration takes the state from the previous iteration and advances it one step closer to the final goal.
 
 **Concept Example**:
 - Find maximum among elements in $[0..i]$ at `#i` iteration.
@@ -1249,7 +1253,7 @@ for (int i = 1; i < nums.length; i++) {
     if (nums[i] > currentMax) {
         currentMax = nums[i];
     }
-    // iteration goal achieve: currentMax is not max(nums[0..i])
+    // iteration goal achieved: currentMax is now max(nums[0..i])
 }
 ```
 
@@ -1257,17 +1261,18 @@ for (int i = 1; i < nums.length; i++) {
 
 **Definition**: The block of code executed each iteration.
 
-**Relation**: It achieves the iteration goal, maintains or utilizes loop invariants, and perform the actions of loop variants.
+**Relation**: It achieves the iteration goal, utilizes and maintains loop invariants, and update loop variants to ensure progress.
 
 **Importance**: Performs the real work, transitions from one iteration to the next, core of the repetition.
 
 **Notes**:
 - **Iteration Dependency**: Depending on the concrete code, iterations could be dependent or independent.
-  - Independent iteration have no dependence on previous iterations. e.g., printing elements.
-  - Dependent iteration builds upon previous iterations. e.g., DP, prefix sums.
-- For dependent iteration, the loop body shows how we use the properties of the `#i-1` iteration to accomplish the properties of `#i` iteration.
+  - *Independent iteration* have no dependence on previous iterations. e.g., printing elements.
+  - *Dependent iteration* builds upon previous iterations. e.g., DP, prefix sums.
+- For dependent iteration, the loop body's job is to take the state from `#i-1` iteration to produce the state for `#i` iteration.
+- **Idempotent Loops**: Some loops can run multiple times with no state change, which is idempotent behavior.
 
-**Code Examples** (dependent iteration, Fibonacci):
+**Code Examples**:
 ```java
 // Loop goal: compute Fibonacci sequence up to n
 // Dependent iteration, the fibonacci number of i depends on previous two fibonacci numbers
@@ -1288,22 +1293,22 @@ for (int num : nums) {
 
 ### Edge Cases
 
-**Definition**: Special cases handled explicitly, often at initialization or termination.
+**Definition**: Edge cases are the special or extreme scenarios that might need explicit handling outside the normal loop logic, often handled at the boundaries (initialization and termination).
 
 **Importance**: Prevents subtle bugs, especially off-by-one errors.
 
 **Notes**:
-- Both initialization and termination(before the first iteration and after the last iteration) are edges cases. Corner cases are also edge cases, but it's highly case-by-case.
-- Different algorithms have different corner cases, but typically if the collection we need to deal with have 0 or 1 element, then it's a corner case.
+- Both initialization and termination (the moments before the first iteration and after the last iteration) are edges cases. Corner cases are also edge cases, but it's highly case-by-case.
+- Different algorithms have different edge cases, but typically if the collection we need to deal with have 0 or 1 element, then it's an edge case.
 - Typically the first and the last iteration of the loop would introduce some problems. The first iteration is about initialization and the last iteration is about termination.
-- Some people also consider the **best case** and **worst case** for an algorithm as its edge cases.
-- Edge cases should also be stated with comments. we can find edge cases by making the assumption of our procedure FALSE or by observing out-of-bound cases of the codes
+- Some algorithms define **best case** and **worst case** scenarios, which you can consider as edge cases in terms of performance or structure.
+- Edge cases should usually be considered when writing code and often documented in comments or tests. We can find edge cases by making the assumption of our procedure FALSE or by observing out-of-bound cases of the code.
 
 **Concept Examples**:
-- Empty array (`nums.length == 0`)
-- One-element array (`nums.length == 1`)
+- Empty array, e.g., `nums.length == 0`
+- One-element array, e.g., `nums.length == 1`
 - Loop condition false from start (zero iterations)
-- Loop with One Iteration Only
+- Loop runs exactly once
 
 **Code Example**:
 
@@ -1329,6 +1334,7 @@ if (nums == null || nums.length == 0) return -1; // handle empty array explicitl
     - When the variant reaches a termination point, the loop stops.
 - To put loop variant under the context of programming elements, an explanation is to treat the loop body as a function, all the variables accessed(read or write) in the loop body as parameters of that function, and the output value should decrease for every iteration. 
     - Indeed, if we take a closer look at the variables accessed in the loop body, they can be divided into several categories and we will discuss that later. The ones that are directly relevant to loop variant are called loop control variables.
+    - It's also equivalent to define loop variant as some numeric measure that strictly increases toward a limit with each iteration.
 - **Loop Control Variables**: variables used in loop conditions(including exit conditions), whose values could be changed inside the loop body. They could have many forms. 
     - For example in `for (int i = 0; i < n; i++)`, the integer $i$ is a loop index variable, which is a common form of loop control variables.
     - Loop control variables directly control whether the loop continues or terminates, and thus they collectively map to an abstract measure of how close the loop is to termination, which is the loop variant.
@@ -1891,7 +1897,7 @@ return -1;
 - Loop analysis helps you read and understand looping code, and it's the prerequisite of good loop implementation: you can only learn how to write good looping code after you can read them well and reason about them in a methodical way. 
 - You will find loop implementation strongly connected to the techniques introduced in loop analysis, and the main work we need to do to implement a loop is to figure out the loop elements correctly.
 - In this section, we will try to find a way to methodically implement looping code, with clear code structure and meaningful documentation.
-- Typically when you solve a coding problem, you need to design the algorithm and then implement it. But since this section focuses on implementation, the high-level design will be provided for each algorithm, and you are encouraged to implement the algorithm according to that design first. After you finish the code, you can go on to read the rest.
+- Typically when you solve a coding problem, you need to design the algorithm and then implement it. But since this section focuses on implementation, the high-level design will be provided for each algorithm, and you are encouraged to implement the algorithm according to that design first. After you finish the code, you can go on to read the rest of each section.
 - Depending on the coding problems, some are harder to design and others are harder to implement. This section is mainly about how to implement the algorithms methodically, and the premise is that we already have the high-level idea about the algorithm, which itself could be harder in solving practical problems.
 - There will be several case studies. I will go into verbose details in the first case study, implementing the bubble sort, and be concise for later ones.
 
@@ -1953,7 +1959,7 @@ This is the conceptual design of the algorithm. Although it captures the essence
 
 #### Outer Loop Implementation
 
-**Analysis at a Glance**:
+**Primitive Analysis**:
 - For the outer loop, it's obvious that the Loop Goal is identical to the intent of the whole method, that is to sort the input array $a[]$ in non-decreasing order. 
 - The Loop Premise is also the precondition of the method: the array $a[]$ cannot be null.
 - Indeed, you could identify that an array of 0 or 1 element doesn't need any operations to make it sorted. They are obviously edge cases for our algorithm, and you may be tempted to write code like the following to take the shortcut to early return:
@@ -2661,7 +2667,7 @@ void insertionSort(int[] a) {
 
 Brief complexity analysis:
 - Insertion Sort is in-place, with constant extra space, so the space complexity is O(1).
-- Due to the two layers of loop, the time complexity is O(n^2). The following table summarizes the complexity of comparisons and shifts.
+- Due to the two layers of loop, the time complexity is $O(n^2)$. The following table summarizes the complexity of comparisons and shifts.
 - **Best Case**: If the input array is already sorted, the outer loop will still run $n-1$ times, but the inner loop will do minimal work (each time it finds that the key is larger than or equal to the last sorted element, so no shifts occur). 
 - **Worst Case**: If the input array is reverse sorted, the outer loop still runs $n-1$ times, but each iteration will trigger the inner loop to run all the way to the beginning of the sorted portion, making the algorithm do the maximum number of shifts, which is $O(n)$.
 
@@ -2786,7 +2792,8 @@ int binarySearchInsertPosition(int[] array, int low, int high, int key) {
 - We will have a dedicated notebook for binary search, so we don't argue why it's correct here.
 - This is a classic optimization of insertion sort for the search phase, reducing from $O(\log n)$ to $O(n)$. 
 - But the algorithm still has $O(n^2)$ overall time complexity due to shifting.
-- Notice that this optimization doesn't always bring performance gain, because the original algorithm only requires $O(1)$ in the best case. - In fact this optimization is rarely worth it in practice unless:
+- Notice that this optimization doesn't always bring performance gain, because the original algorithm only requires $O(1)$ in the best case. 
+- In fact this optimization is rarely worth it in practice unless:
     - comparisons are much more expensive than moves
     - the array is large and the data is not primitive (e.g., sorting large objects)
 
