@@ -1327,6 +1327,8 @@ if (nums == null || nums.length == 0) return -1; // handle empty array explicitl
 
 **Importance**: Guarantees loop termination by ensuring measurable progress.
 
+---
+
 **Notes**:
 - In single-thread algorithmic programs, a loop is not supposed to run forever, and any loop should eventually terminate. The loop variant is such a measure of how close the loop is to termination. For a loop destined to terminate in a deterministic way, it must have a finite number of iterations, and the loop variant acts like a counter of the number of remaining iterations, going from a non-negative integer to 0.
 - Another way to describe loop variant: You can think of the loop variant as a "countdown" toward loop termination.
@@ -1368,6 +1370,8 @@ if (nums == null || nums.length == 0) return -1; // handle empty array explicitl
     - Variant halves each time -> $O(\log(n))$
 - Both loop variant and loop invariant are connected with meaning and definition of variables accessed in the loop. There are variables accessed in the loop that are not considered as loop control variables and thus have little to do with loop variant, so it's normal for you to feel confused. We will discuss their distinction and more about loop variant, loop control variables in the section of loop invariant.
 
+---
+
 **Identify Loop Control Variables and Loop Variant**:
 1. Identify the loop condition clearly. For example, `while (left <= right) { ... }`.
 2. Extract variables involved that change inside the loop: here, $left$ and $right$ (both potentially modified). These are your loop control variables.
@@ -1377,6 +1381,8 @@ if (nums == null || nums.length == 0) return -1; // handle empty array explicitl
     - Example for binary search: Variant = $right - left + 1$ (size of search space), which decreases every iteration (for a correct implementation).
 
 However, this only tells you how to identify them, not how to choose them for your loop.
+
+---
 
 **Concept Examples**:
 - Loop index $i$ could increment (`i++`) or decrement (`i--`), which means the remaining number of unexamined elements in the array decreases($nums[i...n-1]$ or $nums[0...i]$ depending on the iteration direction)
@@ -1436,6 +1442,8 @@ In the above code example, the loop invariant could be stated as bellow:
 - In complex loops, you may have multiple invariants tracking different aspects of state. They must all hold simultaneously at the start of each iteration.
 - While the invariant is guaranteed at iteration boundaries, it may not hold during execution of the loop body, which corresponds to the blue part in the image, especially in complex or multi-step loops. This is OK as long as it’s restored by the end of the iteration.
 
+---
+
 **Variant vs Invariant**:
 - Loop variant = "The progress meter": A numeric measure explicitly moving toward termination every iteration.
 - Loop invariant = "The truth that stays true": A logical condition or meaning that holds true every iteration.
@@ -1460,6 +1468,8 @@ Variant vs. Invariant: Complementary Roles
 | **Changes?**            | Must strictly decrease (well-founded)     | Must not change (logically preserved)    |
 | **Failure to Maintain** | Risk of infinite loop                     | Risk of logical error / incorrect output |
 | **Analogous to**        | A countdown clock                         | A safety contract                        |
+
+---
 
 **Exception**:
 - There are special cases that could make loop invariant false after loop termination. This is because the invariant could be temporarily violated inside the loop body, and if we use `break` or `return` to early exit the loop before restoring the loop invariants, they could be false after the loop terminates.
@@ -1489,7 +1499,9 @@ while (true) {
 }
 ```
 
-**Other Conceptual Examples**:
+---
+
+**Conceptual Examples**:
 - At the start of `#i` iteration, $nums[0..i-1]$ consists of the original elements in $nums[0...i-1]$ but now sorted in non-decreasing order.
 - At the start of `#i` iteration, all elements in $nums[0...i-1]$ have been printed to console.
 - At the start of `#i` iteration, sub-array $nums[0...i-1]$ doesn't contain $target$.
@@ -1525,6 +1537,8 @@ while (true) {
 - Loop invariants are less important for some loops, those who have little to no relation between iterations. For example in a lot of `for-each` loop, the iterations are independent, in which case loop invariant doesn't tell us much useful information. But typically loops like this doesn't require complicated analysis.
 - If you want to see an detailed example of proving the correctness of an algorithm using loop invariant, you can refer to the insertion sort chapter of *Introduction to Algorithms*, which gives a perfect demonstration. 
 
+---
+
 **Design and Implementation**: clear loop invariants could guide loop design and implementation.
 - Writing or stating an invariant before coding can:
     - Clarify what the loop must maintain
@@ -1537,6 +1551,8 @@ while (true) {
 - Loop invariants are about how current iteration connects with all work that has been done in all previous iterations. Implementing and understanding a loop requires us to be clear what we want to go from `#i` iteration to `#i+1` iteration, and break it down into multiple smaller task. During the process, we need to generalize the loop goal as $P(n)$ and find out what $P(i)$ means, which is typically closely connected with loop invariants.
 - We will see some examples on how to utilize loop invariants in solving programming problems.
 
+---
+
 **Documentation**: loop invariants helps the reader understand the logical structure and guarantees of the loop.
 - Source code is not just for execution, but also for reading, and not just for other people, but also for the programmer who wrote the code. Because no one could remember everything about the code they write. Proper documentation makes maintaining and understanding code much easier. And writing documentation or comment for loop, loop invariant is the most important element to include.
 - Stating the invariant explicitly as a comment or docstring:
@@ -1547,6 +1563,8 @@ while (true) {
     - If the loop invariants are clear documented, remember to inspect how it's maintained across iterations
     - Hypothesize the invariant if it's not written, and use it to explain each line in the loop
 - Over time, a seasoned programmer will naturally internalize this habit, because it's like writing pre/post conditions, but inside the loop.
+
+---
 
 **Debugging**: loop invariants help check internal assumptions during development.
 - When a loop doesn't produce the expected result:
@@ -1572,6 +1590,8 @@ while (true) {
 }
 if (!checkLoopInvariant()) throw error;
 ```
+
+---
 
 #### Loop Variable Semantics
 
@@ -1607,6 +1627,8 @@ For the variables that are accessed in the loop, there are two categories:
 - It's possible for an variable to be both Loop Control Variable and State-Carrying Variable, and this often means it's part of both the variants and invariants.
 - For Stateful Variables, we say a variable could be modified when there is at least one statement in the loop that modifies its value. In the actual execution, its value may stay unchanged due to branching, but as long as there is possibility it could be modified, we don't consider it a constant.
 
+---
+
 When we analyze a loop, the meaning of the Contextual Variables are often straightforward. But for the Stateful Variables, many people struggle to properly define their meanings. Let’s revisit a classic example:
 
 ```java
@@ -1634,6 +1656,8 @@ For a **State-Carrying Variable**, we can state how it's initialized, whether it
 - Normally, you will see that loop invariants are often the properties or definitions of some State-Carrying Variables, but Loop Control Variables are often used as parameters in loop invariants.
 
 There are not **Incidental Variables** in this example, but we will see some in later ones.
+
+---
 
 **How to Define Stateful Variables**:
 - Clearly states initialization (e.g. $0$).
