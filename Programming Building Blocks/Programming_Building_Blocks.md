@@ -440,9 +440,9 @@ Side Effects matter in expression evaluation because they could introduce bugs i
 - **Short-Circuiting**: as shown above, side effects may or may not occur because of short-circuiting, so don’t rely on side effects in short-circuited branches.
 To keep program behavior predictable and code clear, it’s often best to avoid embedding important side effects in complex boolean expressions. If a method call or operation has a significant side effect, consider doing it in a separate statement. 
 
-### Expression Evaluation
+### Expression Evaluation Order
 
-**Expression Evaluation** is determined by several factors, mainly **operator precedence**, **operator associativity** and **operand/subexpression evaluation order**. They could be trick and confuse a lot of people. To conclude:
+**Expression Evaluation Order** is determined by several factors, mainly **operator precedence**, **operator associativity** and **operand/subexpression evaluation order**. They could be trick and confuse a lot of people. To conclude:
 - Operator Precedence and Operator Associativity in Java (and most programming languages) only determine how expressions are grouped, that is how the parser builds the abstract syntax tree (AST). They do not dictate when function arguments are evaluated, when side effects (like `i++`) happen and the exact runtime order of evaluation.
 - These are determined by the Java Language Specification, which explicitly defines operand evaluation order (e.g., left-to-right for most binary operators).
 
@@ -487,7 +487,7 @@ For example, `100 / 2 / 5` is interpreted as `(100 / 2) / 5` (left-to-right asso
 
 Most Java operators are left-to-right associative, but the assignment operators(`=`, `+=`, `-=` etc) are right-to-left associative. So the expression `x = y = z = 5` is treated as `x = (y = (z = 5))`.
 
-#### Operand/Subexpression Evaluation Order
+#### Operand Evaluation Order
 
 Operator Precedence and Associativity determine in which order Java groups operands and operators, but it does not determine in which order the operands are evaluated. By determining grouping, they in turn constrains the order of execution, but only to the extent required by the grouping. So the grouping does constrain evaluation order, but only partially, and only through structure, not through actual timing or sequencing rules.
 
@@ -778,7 +778,7 @@ Sometimes this will make more sense, but remember when reading branching code, r
 
 In this case you should realize that although the condition says `x is divisible by 2`, but only when `x is divisible by 2 not not divisible by 4` will go into this branch.
 
-### Put the Most Likely First
+### Reordering Branching Code
 
 #### Basic Ideas
 
@@ -816,7 +816,7 @@ if (user.isRegularUser()) {        // most frequent, moved first
 
 In the before version, every regular user login will go through two additional branch condition branches that rarely evaluates to true. If the evaluation of those two expression is expensive, then the after version improve the performance drastically.
 
-#### Moving Likely Boolean Expressions Closer to the Left
+#### Moving Likely Expressions Closer to the Left
 
 The following example is for `&&`, but for `||` the idea is similar.
 
