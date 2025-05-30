@@ -8,7 +8,7 @@
   - [Expression Evaluation](#expression-evaluation)
     - [Boolean Expressions as Conditions](#boolean-expressions-as-conditions)
     - [Side Effect of Expressions](#side-effect-of-expressions)
-    - [Expression Evaluation Order](#expression-evaluation-order)
+    - [Expression Evaluation](#expression-evaluation)
       - [Operator Precedence](#operator-precedence)
       - [Operator Associativity](#operator-associativity)
       - [Operand/Subexpression Evaluation Order](#operandsubexpression-evaluation-order)
@@ -22,10 +22,11 @@
   - [Tricks and Caveats](#tricks-and-caveats)
     - [Invert Complicated Conditions](#invert-complicated-conditions)
     - [Treat Overlapping Conditions Carefully](#treat-overlapping-conditions-carefully)
-    - [Put the Most Likely Branches/Expressions First](#put-the-most-likely-branchesexpressions-first)
-      - [Moving Most Likely Branches Closer to the Top](#moving-most-likely-branches-closer-to-the-top)
-      - [Moving Most Likely Boolean Expressions Closer to the Left](#moving-most-likely-boolean-expressions-closer-to-the-left)
-      - [Putting Simplest or Cheapest Checks First (when probabilities are similar)](#putting-simplest-or-cheapest-checks-first-when-probabilities-are-similar)
+    - [Put the Most Likely First](#put-the-most-likely-first)
+      - [Basic Ideas](#basic-ideas)
+      - [Moving Likely Branches Closer to the Top](#moving-likely-branches-closer-to-the-top)
+      - [Moving Likely Boolean Expressions Closer to the Left](#moving-likely-boolean-expressions-closer-to-the-left)
+      - [Putting Simplest or Cheapest Checks First](#putting-simplest-or-cheapest-checks-first)
     - [Use Guard Clauses to Flatten Nested Branches](#use-guard-clauses-to-flatten-nested-branches)
   - [Recommended Leetcode Problems](#recommended-leetcode-problems)
 - [Loop/Iteration](#loopiteration)
@@ -84,11 +85,11 @@
 
 # Statement Sequence
 
-A statement is a complete instruction that performs some action. In imperative programming languages, statements are the basic unit of execution. There are different types of statements, such as Declaration, Assignment, Function/Method Invocation etc.
+A statement is a complete instruction that performs some action. In imperative programming languages, statements are the basic unit of execution. Common types of statements include declarations, assignments, and function/method calls.
 
-Statement sequence (sometimes called sequential execution) means the computer executes statements one after another, in the exact order they are written, from top to bottom. This is the default behavior of a program: without other program control mechanisms, it just keeps running line by line.
+A **statement sequence** (also called sequential execution) means the computer executes statements one after another, in the exact order they appear, from top to bottom. This is the default behavior of a program: without any control flow, it simply runs each line in sequence.
 
-In real-world programming, it's hard to implement interesting and useful algorithms using pure statement sequence without control flow. There are examples but they are typically simple and short in length:
+In practice, it’s difficult to implement anything complex or interesting using only statement sequences without control flow. Such purely sequential code usually only works for very simple, short tasks. For example:
 
 ```java
 void statementSequenceExample() {
@@ -107,13 +108,13 @@ void statementSequenceExample() {
 statementSequenceExample();
 ```
 
-Program control flows such as branching, loops and recursion interrupt or modify this basic sequential flow, as we will discuss below.
-1. **Sequential Execution**: Run statements in order (default behavior).
-2. **Branching**: Choose which block of statement sequence to run.
-3. **Looping**: Repeat a block of statements sequence.
-4. **Recursion**: Re-enter the same sequence with different inputs.
+Program control mechanisms such as branching, loops and recursion interrupt or modify this basic sequential flow, as we will discuss below.
+1. **Sequential Execution**: Execute statements in order (default behavior).
+2. **Branching**: Choose which block of statement sequence to execute based on some condition.
+3. **Looping**: Repeat a block of statements multiple times.
+4. **Recursion**: Have a function or routine call itself, re-entering the same sequence of steps with new inputs.
 
-There are indeed other ways of control flows, such as `goto`, but these are typically not recommended and rarely required in competitive programming, so we won't discuss them.
+Other control flow constructs (such as `goto`) exist, but they are generally discouraged and rarely needed in competitive programming, so we won’t cover them here.
 
 # Branching
 
@@ -121,9 +122,9 @@ There are indeed other ways of control flows, such as `goto`, but these are typi
 
 ### Basic Concepts
 
-Branching is about making decisions in a program: perform different actions under different conditions, which means different blocks of statement sequence would run depending on conditions. With branching, a programs reacts dynamically based on different inputs and variable values. It's also called **Conditional Statements** or **Selection**.
+Branching is about making decisions in a program: perform different actions under different conditions, meaning the program can execute different blocks of code depending on the conditions. Branching lets a program react dynamically to various inputs and values. This concept is also known as **Conditional Statements** or **Selection**.
 
-In programming, branching is usually done using branching statements like `if`, `else if`, and `else`. Some programming languages also support `switch` statements, which are more efficient when dealing with single variable against multiple values, but they are less common in competitive programming so I will leave them out. These Branching statements could be combined and nested to form a complicated block of statements. 
+In programming, branching is typically implemented with statements like `if`, `else if`, and `else`. Some programming languages also support `switch` statements, which are more efficient when dealing with single variable against multiple values, but `switch` is less common in competitive programming and is omitted here. Branching statements can be combined and nested to form complex decision logic. For example:
 
 ```java
 if (condition_1) {
@@ -139,22 +140,23 @@ if (condition_1) {
 }
 ```
 
-For complicated branching statements, you could use a **decision tree** to visualize it. The below is an example, and it could be further broken into more branches if we look inside each condition and the relevant variables. For example, if `condition_1` has $N$ boolean expressions and $M$ variables involved in total, we can break the diamond of `condition_1` into a sub decision tree.
+For complicated branching statements, you could use a **decision tree** to visualize it. Below is an example decision tree, and each decision node (often drawn as a diamond in flowcharts) could be further broken into more branches if conditions involve multiple parts or variables. For instance, if `condition_1` is composed of $N$ boolean expressions and involves $M$ variables, that single decision can be expanded into a sub-tree exploring all combinations of those sub-expressions.
 
 <img src="img\branching_statement_as_decision_tree.png" alt="branching_statement_as_decision_tree" style="width: 70%; height: 70%; display: block; margin-left: auto; margin-right: auto;">
 
-From a mathematical perspective, **set theory** helps you understand which branch will execute for which subset of variable assignments, and **venn diagrams** help you visualize the relations of different sets. For example, let's suppose the venn diagram for the above branching statements is as below.
+From a mathematical perspective, **set theory** can help determine which branch executes for a given set of variable assignments, and **Venn diagrams** can illustrate how those sets overlap. For example, consider a Venn diagram for the branching logic above:
 
 <img src="img\venn_diagram_for_branching_statement.png" alt="venn_diagram_for_branching_statement" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
 
-We have 9 different areas in total that represent different sets of variable assignments involved in this branching statements block(formally,  they are called atomic equivalence class). You can see from here that the order of the branches matters when their variable assignments overlap:
-- Variable assignments corresponding to A1, A5, A4, A7 will execute Statement_1
-- Variable assignments corresponding to A2, A6 will execute Statements_2
-- Variable assignments corresponding to A3 will execute Statements_3
-- Variable assignments corresponding to A8 will execute Statements_N
-- Variable assignments corresponding to A9 will execute the default statements
+In this diagram, there are nine distinct regions, formally called *atomic equivalence classes*, representing different combinations of variable assignments for the branching code. Notice that the order of the branches matters when conditions overlap:
 
-Programmers have different but equivalent ways of implementing branching, which is one of the reasons why another programmer's implementation of the same algorithm may look drastically different than yours. A good understanding of how branching works helps you not only write better programs but also read others' programs more efficiently.
+- Variable assignments corresponding to A1, A5, A4, A7 will cause Statement_1 to execute.
+- Variable assignments corresponding to A2, A6 will cause Statements_2 to execute.
+- Variable assignments corresponding to A3 will cause Statements_3 to execute.
+- Variable assignments corresponding to A8 will cause Statements_N to execute.
+- Variable assignments corresponding to A9 will cause the default statements to execute.
+
+Different programmers might implement the same branching logic in different but logically equivalent ways, which is one of the reasons why another programmer's implementation of the same algorithm may look drastically different than yours. Understanding how branching works not only helps you write better code but also makes it easier to read and interpret other people’s code.
 
 ### Examples
 
@@ -179,9 +181,9 @@ if (condition_1 && condition_2) {
 Do you think the above two branching code blocks are equivalent? If so, which one do you think is better?
 <details>
 <summary>Click to show the answer</summary>
-Yes, they are always equivalent, even when the conditions contain side effects or are method invocation.<br/>
-In this case, <code>Code_Block_2</code> is preferred for clarity and conciseness.<br/>
-But in practical programming, you may want to execute something as long as <code>condition_1</code> is true and regardless of the truth of <code>condition_2</code>, then you could insert code inside the block of <code>condition_1</code> but outside the block of <code>condition_2</code>, so <code>Code_Block_1</code> gives you more flexibility.<br/>
+Yes, they are always functionally equivalent, even if the conditions have side effects or involve method calls.<br/>
+In this case, <code>Code_Block_2</code> is preferable for clarity and conciseness.<br/>
+But in practice, you might want to execute some code whenever <code>condition_1</code> is true and regardless of <code>condition_2</code>. In this case you could insert code inside the outer <code>if</code> but outside the inner <code>if</code>, so <code>Code_Block_1</code> gives you more flexibility.<br/>
 Also notice that due to short-circuit evaluation, in <code>Code_Block_2</code>, if <code>condition_1</code> evaluates to false, then <code>condition_2</code> won't be evaluated.
 </details>
 
@@ -211,9 +213,9 @@ if (condition_1 && condition_3) {
 What about the above pair of code blocks?
 <details>
 <summary>Click to show the answer</summary>
-They are equivalent if the evaluation of <code>condition_1</code> has no side effects. Otherwise they are not.<br/>
-But even when they are equivalent, <code>condition_1</code> will always be evaluated twice, so if the evaluation of <code>condition_1</code> is expensive, then <code>Code_Block_3</code> is preferred.<br/>
-Notice that in <code>Code_Block_4</code>, even though <code>condition_1</code> is evaluated before, the program won't remember the result of the evaluation and will evaluate it again in the second boolean expression.
+They are equivalent <b>only if</b> evaluating <code>condition_1</code> has no side effects. If <code>condition_1</code> does have side effects, then they are <b>not</b> equivalent.<br/>
+Even when they are logically equivalent, <code>condition_1</code> will always be evaluated twice in code>Code_Block_4</code>, so if the evaluation of <code>condition_1</code> is expensive, then <code>Code_Block_3</code> is preferred.<br/>
+In <code>Code_Block_4</code>, even though <code>condition_1</code> is evaluated in the fist <code>if</code>, the program does not store that result and will evaluate it again in the second <code>if</code>.
 </details>
 
 **Example 3**
@@ -243,8 +245,8 @@ Do you think the above pair of code blocks are equivalent?
 <details>
 <summary>Click to show the answer</summary>
 No, they are not equivalent.<br/>
-In <code>Code_Block_5</code>, only one of the branches will execute, but in <code>Code_Block_6</code>, both could execute. For example, if both <code>condition_2</code> and <code>condition_3</code> are true, in <code>Code_Block_5</code> only Statements_A will be executed due to the else if, but in <code>Code_Block_6</code> both statements will be executed.<br/>
-And on top of that,  <code>condition_1</code> will always be evaluated twice.
+In <code>Code_Block_5</code>, at most one branch can execute, whereas in <code>Code_Block_6</code>, both branches might execute. For example, if both <code>condition_2</code> and <code>condition_3</code> are true, <code>Code_Block_5</code> will execute only Statements_A (since the <code>else if</code> prevents the second check when the first succeeds), but <code>Code_Block_6</code> will execute both Statements_A and Statements_B.<br/>
+Additionally, in <code>Code_Block_6</code>, <code>condition_1</code> will always be evaluated twice.
 </details>
 
 **Example 4**
@@ -295,18 +297,17 @@ if (condition_2 | condition_1) {
 }
 ```
 
-Which pairs in the above code blocks are equivalent? Why?
+Which pairs of the above code blocks are equivalent? Why?
 <details>
 <summary>Click to show the answer</summary>
-<code>Code_Block_7</code> and <code>Code_Block_9</code> are always equivalent, and they only equivalent to the others if both condition expressions have no side effects.<br/>
-<code>Code_Block_8</code> and <code>Code_Block_10</code> are always equivalent, and they only equivalent to the others if both condition expressions have no side effects.<br/>
-For <code>Code_Block_11</code> and <code>Code_Block_12</code>, although both conditions will be evaluated, but whether they are equivalent depends on whether they have side effects and what kinds of side effects. If they have no side effects, then they are equivalent. Otherwise, the execution order between them could make a difference. Consider the difference between adding 5 to a number then multiplying it by 5, and multiplying a number by 5 then adding 5 to it.<br/><br/>
-To conclude, if both conditions have no side effects, then all code blocks are logically equivalent, but <code>Code_Block_11</code> and <code>Code_Block_12</code> will always evaluate both conditions. Otherwise, you have to analyze the equivalence case by case. This is one of the reasons why refactoring existing code could be hard: if a method/function returns boolean value, and you need to modify its side effects, you need to inspect all places that invoke it.
+<code>Code_Block_7</code> and <code>Code_Block_9</code> are always equivalent to each other. They are equivalent to the other versions only when both conditions have no side effects.<br/>
+<code>Code_Block_8</code> and <code>Code_Block_10</code> are always equivalent to each other. They are equivalent to the other versions only when both conditions have no side effects.<br/>
+For <code>Code_Block_11</code> and <code>Code_Block_12</code>, both conditions will be evaluated (because <code>|</code> is a bitwise OR without short-circuiting). Whether they are equivalent depends on whether they have side effects and their nature. If they have no side effects, then they are equivalent. Otherwise, the execution order between them matters and can change the outcome. (For example, adding 5 then multiplying by 5 yields a different result than multiplying then adding 5.)<br/><br/>
+To conclude, if both conditions have no side effects, all the code blocks produce the same logical result, but <code>Code_Block_11</code> and <code>Code_Block_12</code> will still evaluate both conditions. If side effects are present, you have to analyze each case separately. This complexity is one reason refactoring code can be tricky: if a boolean-returning function has side effects and you change those effects, you must review every place that calls it.
 </details>
 
 **Practical Examples**
-
-One of the simplest application of branching is to determine the oddity of an integer number:
+One simple use of branching is determining whether an integer is odd or even:
 
 ```java
 boolean isOdd(int num) {
@@ -328,7 +329,7 @@ void oddityExample() {
 oddityExample();
 ```
 
-Not all branching programs are as simple as the above example though. The complexity of a block of conditional statements depends on the complexity of the branching conditions/conditional expressions/predicates, the number of branches, the branching nesting depth and etc. 
+Not all branching programs are as straightforward as the above example. The complexity of a block of conditional statements depends on several factors: the complexity of the each condition (predicate), the number of branches, the nesting depth of branches and etc. For instance:
 
 ```java
 // What is even happening?
@@ -337,10 +338,10 @@ if (((!a || b) && c && !(d && e)) || ((f && (!g || h)) && !(i && j && !k)) || l)
 }
 ```
 
-The potential problem of exponential path explosion could make writing and reasoning with branching code difficult. For example, I assume the programs that Sprintax or TurboTax use to calculate how much tax you owe IRS or how much tax refund IRS owe you contain very complicated branching code.
 
-In your journey of practicing competitive programming, you will definitely need to implement branching code that is not obvious and simple.
-If you are interested, consider the following practice of implementing a function that determines whether a combination of input date is valid. Note that this problem could be solved using only branching without any loop or recursion.
+The potential for an **exponential explosion of paths** in complex conditions can make branching code difficult to write and reason about. For example, consider tax preparation software (like Sprintax or TurboTax) that calculates your taxes or refund, likely contain extremely intricate branching code.
+
+In competitive programming practice, you will definitely encounter branching logic that is not so obvious or simple. As an exercise, consider implementing a function to check whether a given date (day, month, year) is valid. Note that this problem could be solved using only branching without loop or recursion.
 
 ```java
 boolean isValidDate(int day, int month, int year) {
@@ -361,38 +362,38 @@ System.out.println(isValidDate(15, 13, 2024)); // false
 
 ### Boolean Expressions as Conditions
 
-The behavior of a branching code block depends on the branching conditions, and these conditions are boolean expressions, something that evaluate to either `true` or `false`:
-- Boolean values `true` and `false` could be used directly as literals in boolean expressions. You may have seen some loops starting with `while(true)`.
+The behavior of a branching statement depends on its conditions, which are boolean expressions that evaluate to either `true` or `false`. These boolean expressions can take several forms:
+- Boolean literals `true` and `false` used directly in boolean expressions. For example, some loops starts with `while(true)`.
 - Boolean variables that hold boolean value. For example, `boolean v = true`.
 - Comparison operators such as `==`, `!=`, `<`, `>`, `<=`, `>=` that take two operands and evaluates to a boolean value.
-- Logical Operators such as `&&`, `||`, `!`, `^`, `&`, `|` can be used to combine one or more boolean expressions.
+- Logical Operators such as `&&`, `||`, `!`, `^`, `&`, `|` to combine one or more boolean expressions.
 - Method calls that return boolean value.
 
 You are supposed to be familiar of the meanings and usage of the above operators.
 
-It's worth mentioning that boolean expressions is not just used as branching conditions:
+It's worth noting that boolean expressions are used not just as branching conditions, but in many places in code for making decisions:
 - `if`, `else if`, `while`, `for`, `do-while`
-- ternary operator (`? :`)
-- `assert`, `switch`
+- ternary operator (`? :`), which acts like a compact `if-else`
+- `assert`, `switch` (in languages where `switch` can take a boolean)
 
-They are also used to determine when to continue or stop a loop.
+They also determines when loops continue or stop .
 
-The ternary operator (`? :`) is equivalent to a `if-else` block: `condition ? expr1 : expr2`
-- If condition is true, only expr1 is evaluated, and it's the resultant value.
-- If condition is false, only expr2 is evaluated, and it's the resultant value.
+The ternary operator (`? :`) is essentially an inline `if-else` block: `condition ? expr1 : expr2`.
+- If condition is true, only `expr1` is evaluated, and its value is used.
+- If condition is false, only `expr2` is evaluated, and its value is used.
 
-The ternary operator is typically used in conditional assignment: 
+The ternary operator is often used for concise conditional assignments. For example:
 ```java
 max = (n1 > n2) ? n1 : n2;
 ```
 
 ### Side Effect of Expressions
 
-Side Effect is a important topic that goes beyond boolean expressions, and extends to all expression evaluation. In the context of **expression evaluation**, a side effect is **any observable change in state** that happens in addition to computing and returning a value, including modifying the program's state or interacting with the outside world. This can manifest as changing global variables, modifying an object's internal state, or even writing to a file or network. 
-- Expressions with no side effects are pure — they just calculate and return a value.
-- Expressions with side effects modify memory, I/O, state, or trigger something beyond just computing.
+**Side Effects** are an important concept that goes beyond boolean expressions, and extend to all expression evaluation. In the context of **expression evaluation**, a side effect is **any observable change in state** that occurs in addition to producing a value. This includes modifying variables, changing an object’s state, performing I/O, etc.
+- Expressions with no side effects are pure: they just compute and return a value without altering any program state.
+- Expressions with side effects modify state (memory, I/O, etc.) or trigger something beyond just computing a value.
 
-Side Effects stem from write operations that modify variables. "Read-only" operations are expressions that access state but do not change it — and they are considered free of side effects.
+Side Effects stem from modification operations that write or mutate variables. "Read-only" operations are expressions that access state but do not change it, and thus are free of side effects.
 
 ```java
 int x = 5;
@@ -424,7 +425,8 @@ boolean result = (method2(nums) > 0);   // method2 has side effects
 ```java
 int[] nums = {0, 1};
 int x = 0;
-// Because of the side effects of method2 and the short-circuit evaluation, the following two blocks are not equivalent.
+// Because of the side effects of method2 and the short-circuit evaluation,
+// the following two blocks are not equivalent.
 if (method1(x) > 0 || method2(nums) > 0) {
     doSomething();
 }
@@ -433,21 +435,23 @@ if (method2(nums) > 0 || method1(x) > 0) {
 }
 ```
 
-Side Effects matter in expression evaluation because it could cause bugs.
-- **Reordering**: If the compiler or programmer changes the evaluation order, side effects might happen in a different order.
-- **Short-Circuiting**: as we have seen in the above examples, side effects may or may not happen because of short-circuiting, so don’t rely on side effects in short-circuited branches.
-To make program behavior predictable and improve code clarity, you may want to keep side effects outside of complex boolean expressions or extract method calls with side effects into separate lines.
+Side Effects matter in expression evaluation because they could introduce bugs if not handled carefully:
+- **Reordering**: If the compiler or programmer changes the evaluation order, side effects might occur in a different order.
+- **Short-Circuiting**: as shown above, side effects may or may not occur because of short-circuiting, so don’t rely on side effects in short-circuited branches.
+To keep program behavior predictable and code clear, it’s often best to avoid embedding important side effects in complex boolean expressions. If a method call or operation has a significant side effect, consider doing it in a separate statement. 
 
+### Expression Evaluation
 
-### Expression Evaluation Order
-
-**Expression Evaluation Order** is determined by several factors, mainly **operator precedence**, **operator associativity** and **operand/subexpression evaluation order**. Operator precedence is the most straightforward, but the other two is a little complicated and the distinction between operator associativity and order of operand evaluation could confuse a lot of people.
+**Expression Evaluation** is determined by several factors, mainly **operator precedence**, **operator associativity** and **operand/subexpression evaluation order**. They could be trick and confuse a lot of people. To conclude:
+- Operator Precedence and Operator Associativity in Java (and most programming languages) only determine how expressions are grouped, that is how the parser builds the abstract syntax tree (AST). They do not dictate when function arguments are evaluated, when side effects (like `i++`) happen and the exact runtime order of evaluation.
+- These are determined by the Java Language Specification, which explicitly defines operand evaluation order (e.g., left-to-right for most binary operators).
 
 #### Operator Precedence
 
-When working with operators and operands, be mindful of operator precedence, as operators with higher precedence will be evaluated first. For example, `*` and `/` will be evaluated before `-` and `+`. If you are interested, you can find a complete table of precedence here: https://introcs.cs.princeton.edu/java/11precedence/
+Operator Precedence determines which operator binds first when two different operators appear together without parentheses. For example, `*` and `/` take precedence over `-` and `+`. You can find a complete table of precedence here: https://introcs.cs.princeton.edu/java/11precedence/
 
-In terms of boolean expressions, if you simply use parenthesis to eliminate ambiguity, you don't have to remember the precedence of different logical operators. 
+If you are unsure of operator precedence, you can always use parentheses to make the order explicit. For boolean expressions, using parentheses to remove ambiguity is a good practice for readability. For instance:
+
 
 ```java
 // When there is only one type of logical operator, there is no ambiguity.
@@ -477,31 +481,43 @@ if (((E_1 || E_2) && E_3) || E_4) {
 
 #### Operator Associativity
 
-**Operator Associativity** is about how operators of the same precedence are grouped in the absence of parentheses. When an expression has two or more operators with the same precedence, the operators and operands are grouped according to their associativity.
+**Operator Associativity** is about how operators of the same precedence are grouped in the absence of parentheses. When an expression has multiple operators with the same precedence, associativity (either left-to-right or right-to-left) tells us how to group them.
 
-For example, `100 / 2 / 5` is treated as `(100 / 2) / 5` instead of `100 / (2 / 5)` since division operator is left-to-right associate. And for the same reason, `100 * 2 / 5` is treated as `(100 * 2) / 5` not `100 * (2 / 5)` (* and / have the same precedence level).
+For example, `100 / 2 / 5` is interpreted as `(100 / 2) / 5` (left-to-right associativity for division) rather than `100 / (2 / 5)`. Similarly, `100 * 2 / 5` is treated as `(100 * 2) / 5` not `100 * (2 / 5)`, since `*` and `/` share the same precedence and are left-associative.
 
 Most Java operators are left-to-right associative, but the assignment operators(`=`, `+=`, `-=` etc) are right-to-left associative. So the expression `x = y = z = 5` is treated as `x = (y = (z = 5))`.
 
-Notice that operator associativity is independent of Operand/Subexpression Evaluation Order. For example, `a[A()] = B() = C()` will be treated as `a[A()] = (B() = C())`, but `A()` will be evaluated before `B()` and `C()`. So associativity does not dictate operand evaluation order (especially with side effects), which is left-to-right in Java for most expressions.
-
-
 #### Operand/Subexpression Evaluation Order
 
-Associativity and precedence determine in which order Java groups operands and operators, but it does not determine in which order the operands are evaluated. **Operand/Subexpression Evaluation Order** determines the order in which the operand/subexpression are evaluated.
+Operator Precedence and Associativity determine in which order Java groups operands and operators, but it does not determine in which order the operands are evaluated. By determining grouping, they in turn constrains the order of execution, but only to the extent required by the grouping. So the grouping does constrain evaluation order, but only partially, and only through structure, not through actual timing or sequencing rules.
 
-For the recent versions of Java Language Specification, almost all expressions of the same statement are evaluated from left to right, but due to short-circuit evaluation, not all expressions are guaranteed to be evaluated.
+For example, `a[A()] = B() = C()` will be treated as `a[A()] = (B() = C())`, but `A()` will be evaluated before `B()` and `C()`.
+
+For another example, `int result = 2 + 3 + 4 * 5`, due to operator Associativity and Precedence:
+- `*` has higher precedence -> grouped as `2 + 3 + (4 * 5)`
+- `+` is left-associative -> grouped as `((2 + 3) + (4 * 5))`
+
+You could replace the literals with method call or complicated expressions, but even in this case, grouping constrains evaluation, but doesn’t explicitly dictate the low-level order of evaluation of operands, which is determined by the Java Language Specification (left-to-right for most cases), but in some other languages (like C/C++), the order is unspecified.
+
+**Operand/Subexpression Evaluation Order** determines the order in which the operand/subexpression are evaluated.
+
+In recent versions of the Java Language Specification, evaluation order for most kinds of expressions is well-defined as left-to-right. However, due to short-circuit evaluation rules, not all subexpressions are guaranteed to be evaluated:
+
 ```java
-// In early versions of Java, you cannot be sure that B() is always executed before C() and C() before D()
+// In very old Java versions, the order of B(), C(), D() might not have been guaranteed.
+// In modern Java, this will call B(), then C(), then D() in order.
 A a = new A(B(), C(), D());
 
-// Although B(), C() and D() are guaranteed to execute from left ro right, but due to short-circuiting, if any of them returns true, the rest would be executed
+// Here, B(), C(), D() are called left-to-right, but short-circuiting applies.
+// If B() returns true, C() and D() won't be called at all due to short-circuit OR.
 if (B() || C() || D()) {
     doSomething();
 }
 ```
 
-If you are interested, there are many other rules of Expression Evaluation Order and you can refer to Java Language Specification, but a general rule of thumb is to not rely on the programming language to resolve ambiguity. For example, if in the above code, you really need `B()` to execute before `C()` and `C()` before `D()`, you should use the following code(replace `var` with the actual type):
+There are many other rules of Expression Evaluation Order and you can refer to Java Language Specification, but a general rule of thumb is not to rely on the programming language to resolve ambiguity. If your code’s correctness depends on certain things being evaluated in a specific order, it’s usually better to refactor the code to make that order explicit (for example, by splitting the expression and using temporary variables).
+
+For example, if in the above code, you really need `B()` to execute before `C()` and `C()` before `D()`, you should use the following code(replace `var` with the actual type):
 ```java
 var b = B();
 var c = C();
@@ -513,17 +529,16 @@ Notice that for other languages, this may not be the case. For example, C and C+
 
 #### Further Reading(Optional)
 
-The distinction and connection between operator precedence, operator associativity and operand/subexpression evaluation order could get very complicated. 
+The nuances of operator precedence, associativity, and evaluation order can get very complex. For a deeper understanding, you can refer to discussions like this Stack Overflow post: https://stackoverflow.com/questions/6800590/what-are-the-rules-for-evaluation-order-in-java
 
-This is totally optional, but if you are interested, you can read the following post to enhance your understanding: https://stackoverflow.com/questions/6800590/what-are-the-rules-for-evaluation-order-in-java
-
-The question involves a very strange code:
+The question in that post involves a tricky Java expression:
 ```java
 int[] a = {4,4};
 int b = 1;
 a[b] = b = 0;
 ```
-The effect of the last line is `a[1] = 0;`. It takes some effort to figure out why, but my recommendation for this is to avoid this kind of bad practice do not write code that could raise ambiguity.
+
+The result of the above line is that `a[1]` becomes `0`. It takes some careful thought to understand why, but the takeaway is not to write such code that could raise ambiguity. Avoid convoluted expressions that are hard to reason about, and don’t write code where it’s unclear in what order things happen.
 
 This means you should avoid code like the following:
 ```java
@@ -532,19 +547,22 @@ a[j++] = a[j - 1];
 
 ### Short-Circuit Evaluation
 
-In many programming languages, **logical operators** `&&` (AND) and `||` (OR) perform **Short-Circuit Evaluation**: They skip evaluating the right-hand side if the left-hand side is enough to determine the result. This behavior improves performance and helps avoid side effects or errors (e.g., null pointer exceptions).
+In many programming languages, **logical operators** `&&` (AND) and `||` (OR) perform **Short-Circuit Evaluation**: They skip evaluating the right-hand side if the left-hand side is enough to determine the result. Short-circuiting improves performance and helps avoid side effects or errors (e.g., null pointer exceptions).
 
-To be more specific:
-- For `&&` (Logical AND), if left side of the operator evaluates to false, the result must be false, so right side of the operator is not evaluated.
-- For `||` (Logical OR), if left side of the operator evaluates true, the result must be true, so right side of the operator is not evaluated.
+Specifically:
+- For `&&` (Logical AND), if left side evaluates to false, the result must be false regardless of the right side, so right side is not evaluated.
+- For `||` (Logical OR), if left side evaluates to true, the result must be true regardless of the right side, so right side is not evaluated.
 
 In contrast, **bitwise operators** `&` (Bitwise AND) and `|` (Bitwise OR) are not short-circuit operators:
 - For `&` (Bitwise AND), both sides are always evaluated from left to right, even if the first is false.
 - For `|` (Bitwise OR), both sides are always evaluated from left to right, even if the first is true.
 
-You can use them when you need side effects from both operands, or are operating on bits (integers).
+You can use `&` or `|` when you need both operands to be evaluated (typically this means they have side effects that you want to always occur), or when you are explicitly doing bit-level operations on integers.
 
-Java’s strict left-to-right evaluation + short-circuiting is safe and predictable, and it’s a key reason why idioms like `if (x != null && x.doSomething())` are so common, and you will likely use this in linked list and binary tree problems.
+Java’s strict left-to-right evaluation + short-circuiting is safe and predictable.
+    - It’s a key reason why idioms like `if (x != null && x.doSomething())` are so common. 
+    - It’s safe because if `x` is `null`, the second part (`x.doSomething()`) is never evaluated, thus avoiding a `NullPointerException`.
+    - You’ll often use such idioms when dealing with linked lists, trees, or other structures where you need to check an object for null before accessing its members.
 
 ```java
 boolean isTrue() {
@@ -566,7 +584,7 @@ if (isTrue() | isFalse()) {
 }
 ```
 
-Short-Circuit Evaluation is the reason why some pairs in the previous examples are equivalent but some are not.
+Short-circuit evaluation is exactly why some earlier code block pairs were equivalent and others were not.
 
 ```java
 // Code_Block_1
@@ -584,11 +602,11 @@ if (condition_1 && condition_2) {
 }
 ```
 
-For example, `Code_Block_1` and `Code_Block_2` are equivalent, that is the statements will only be executed if both conditions are evaluates to `true`. And due to the reason we put `condition_1` before `condition_2` and connect them with `&&` in `Code_Block_2`, if `condition_1` evaluates to `false`, then `condition_2` won't be evaluated. This makes a difference if `condition_2` has side effects, such as modifying the values of some variables.
+For example, `Code_Block_1` and `Code_Block_2` are equivalent, that is the statements inside will only be executed if both conditions evaluate to `true`. And due to the reason we put `condition_1` before `condition_2` and connect them with `&&` in `Code_Block_2`, if `condition_1` evaluates to `false`, then `condition_2` won't be evaluated. This matters if `condition_2` has side effects, such as modifying the values of some variables: those side effects will never occur unless `condition_1` was true.
 
 ### Applying Mathematical Logic
 
-A little knowledge of mathematical logic can sometimes help you simplify boolean expressions and make the code more readable.
+A bit of knowledge about mathematical logic can help you simplify boolean expressions and make the code more readable.
 
 #### De Morgan’s Laws
 
@@ -654,24 +672,15 @@ Thus in programming languages, we have the following:
 
 ## Tricks and Caveats
 
-There are good and bad practice when implementing branching, and although the following tricks and caveats are optional, knowing them could improve performance, clarity, or maintainability, and reduce the chance of bugs. Some of the tricks will be repeatedly used in later sections.
+When implementing branching, there are some good practices and common pitfalls to keep in mind. These optional tips can improve performance, clarity, and maintainability. We’ll revisit some of these tricks later as well.
 
 ### Invert Complicated Conditions
 
-You must have noticed that for the `else` branch, you don't have to explicitly specify the branching condition. This follows the complement idea: the union of all `if` and `else if` branches before the last `else` branch is the complement of the `else` branch, and vice versa.
+You must have noticed that for the `else` branch, you don't have to explicitly specify the branching condition: it automatically handles "everything else". This follows the complement idea: all the conditions covered by `if` and `else if` clauses form one set of possibilities (of variable assignments), and the `else` covers the complement of that set.
 
-This is very useful, if we only have a pair of `if-else`, meaning we’re covering exactly two possibilities. That’s essentially a binary partition: **the predicate and its complement**. So if the predicate is too verbose or complex to write, we can consider writing its negation instead, as it might be simpler and clearer. In binary search, you can see a lot of this application.
+This is particularly useful when we only have a pair of `if-else`, meaning we’re covering exactly two possibilities (a binary decision). That’s essentially a binary partition: **the predicate and its complement**. If the predicate is very complex or cumbersome to write, sometimes it’s easier to write the negation of that predicate for one of the branches, rather than the predicate itself. In binary search, you can see a lot of applications of this technique.
 
-For example, suppose we have six colors to consider: `RED`, `BLUE`, `YELLOW`, `GREEN`, `WHITE`, `BLACK`. And we just want to know if an object is black or not.
-
-```java
-boolean isBlack(COLOR color) {
-    if (color is BLACK)
-        return true;
-    else
-        return false;
-}
-```
+For example, suppose we have six colors: `RED`, `BLUE`, `YELLOW`, `GREEN`, `WHITE`, `BLACK`. And we just want to know if an object is black or not. We could write it two ways:
 
 ```java
 boolean isBlack_(COLOR color) {
@@ -682,19 +691,28 @@ boolean isBlack_(COLOR color) {
 }
 ```
 
-In general, if the branching block has only two branches, then there are two predicates/boolean expressions, and we can use the simplest predicate in the `if` branching condition, leaving the other one to `else` to make our code less likely to cause bug.
+```java
+boolean isBlack(COLOR color) {
+    if (color is BLACK)
+        return true;
+    else
+        return false;
+}
+```
+
+In general, if the branching structure has only two branches, then there are two predicates/boolean expressions. In such cases, we can use the simpler predicate in the `if` branching condition, leaving the `else` implicitly handle the other (complementary) case. This can lead to clearer and less error-prone code.
 
 ### Treat Overlapping Conditions Carefully
 
-Ideally the branching conditions should be mutually exclusive, because then the order of the branches doesn't matter and it's less likely to cause bugs. But sometimes it's difficult or expensive to achieve this goal. So you should be mindful of the trade-offs.
+Ideally the branching conditions should be **mutually exclusive** and cover all possibilities, because then the order of the branches doesn't matter and the logic is less error-prone. But sometimes it's difficult or expensive to achieve this goal. You need to weigh the clarity vs. complexity trade-off.
 
-Consider the previous venn diagram example, `condition_1`, `condition_2` and `condition_3` overlap, and if we want to make all branches mutually exclusive, we need to break them into sub-conditions, like 7 mutually exclusive conditions corresponding to A1~A7. 
+Consider the previous Venn diagram example, `condition_1`, `condition_2` and `condition_3` overlap, and if we want to make all branches mutually exclusive, we need to break them into many sub-conditions, like 7 mutually exclusive conditions corresponding to A1~A7. That could become unwieldy.
 
 In addition, sometimes we can utilize the overlap between the conditions to improve performance.
 
 <img src="img\grading_number_line.png" alt="venn_diagram_for_branching_statement" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
 
-Consider the above example, we want to write a program that determines the grade of a student using the score as input. If we insist on making the branching conditions mutually exclusive, we would have something similar to the following:
+Consider the above example, we want to write a program that determines the grade (`A`, `B`, `C`, `D`, `F`) of a student using the score as input. If we insist on making the branching conditions mutually exclusive, we would have something similar to the following:
 
 ```java
 String getGrade(int score) {
@@ -735,7 +753,7 @@ String getGrade(int score) {
 }
 ```
 
-If the branching conditions are not mutually exclusive, the order of the branches makes a difference, and remember to make the more specific condition before the more general one.
+If the branching conditions are not mutually exclusive, the order of the branches makes a difference, and remember to make the more specific condition come **before** the more general one.
 
 Consider the following example:
 ```java
@@ -755,17 +773,24 @@ if (x is divisible by 4) {
     // Statement_A to be executed
 }
 ```
-Sometimes this will make more sense, but remember when reading branching code, read all the conditions from top to bottom. In this case you should realize that although the condition says `x is divisible by 2`, but only when `x is divisible by 2 not not divisible by 4` will go into this branch.
 
-### Put the Most Likely Branches/Expressions First
+Sometimes this will make more sense, but remember when reading branching code, read all the conditions from top to bottom and understand that by the time you get to a certain branch, earlier conditions have failed.
 
-Since the evaluation order of the branching conditions is from top to bottom, we can move the most likely branches (the ones with the highest probability) closer to the top to improve performance. Notice that when doing so, we need to consider the overlap between branching conditions to avoid bugs.
+In this case you should realize that although the condition says `x is divisible by 2`, but only when `x is divisible by 2 not not divisible by 4` will go into this branch.
 
-Since the evaluation order of a boolean expression is from left to right, we can move the most likely expressions (the ones with the highest probability to evaluate to false, if you use &&, or the highest probability to evaluate to true, if you use ||) closer to the left start to improve performance. Notice that when doing so, we need to consider the side effects of the expressions to avoid bugs.
+### Put the Most Likely First
 
-If the branches and expressions have similar probability, then we can put the simplest ones, the ones that are cheapest to compute first.
+#### Basic Ideas
 
-#### Moving Most Likely Branches Closer to the Top
+If you know that certain conditions are more likely than others, consider ordering your branches (and even the parts of complex boolean expressions) to check the likely cases first. This can provide a performance benefit by short-circuiting checks that are unlikely to succeed.
+
+**For branches (if/else if)**: Since the evaluation order of the branching conditions is from top to bottom, we can move the most likely branches (the ones with the highest probability) closer to the top to improve performance. Notice that when doing so, we need to consider the overlap between branching conditions to avoid bugs.
+
+**For boolean expressions**: Since the evaluation order of a boolean expression is from left to right, we can move the most likely expressions (the ones with the highest probability to evaluate to false, if you use &&, or the highest probability to evaluate to true, if you use ||) closer to the left start to improve performance. Notice that when doing so, we need to consider the side effects of the expressions to avoid bugs.
+
+If you have no idea about the likelihood or they’re roughly equal, you can instead order by simplicity or cost—check simpler or cheaper conditions first. For example, if two conditions have similar probability, but one involves a quick variable check and the other calls an expensive function, do the quick check first.
+
+#### Moving Likely Branches Closer to the Top
 
 ```java
 // Before (Less efficient)
@@ -791,7 +816,7 @@ if (user.isRegularUser()) {        // most frequent, moved first
 
 In the before version, every regular user login will go through two additional branch condition branches that rarely evaluates to true. If the evaluation of those two expression is expensive, then the after version improve the performance drastically.
 
-#### Moving Most Likely Boolean Expressions Closer to the Left
+#### Moving Likely Boolean Expressions Closer to the Left
 
 The following example is for `&&`, but for `||` the idea is similar.
 
@@ -811,7 +836,7 @@ if (user.isLoggedIn() && user.hasPremiumAccount()) {
 
 In this case, most users aren't logged in, so user.isLoggedIn() is more likely false than premium account status. In the after version, if the user isn't logged in, the premium account check isn't performed unnecessarily.
 
-#### Putting Simplest or Cheapest Checks First (when probabilities are similar)
+#### Putting Simplest or Cheapest Checks First
 
 ```java
 if (database.hasRecord(user.id()) && user.id() != null && isValid(user.id())) {
@@ -828,7 +853,10 @@ Quickly check for null/invalidity before the expensive database operation.
 
 ### Use Guard Clauses to Flatten Nested Branches
 
-A guard clause is a boolean expression that must evaluate to true for the execution of the program to continue in the branch. Using guard clauses sometimes could flatten deeply nested branches.
+A **guard clause** is a check at the top of a function or loop that exits early if a certain condition is not met. Using guard clauses can reduce nesting by handling "bad" or edge conditions immediately, and letting the rest of the code assume those conditions are true. 
+
+Deeply nested branching (especially many levels of `if` inside `if`) can make code hard to read. Guard clauses allow you to handle error cases or preconditions upfront and then proceed with the main logic in a flatter structure, thus avoid deeply nested branches.
+
 
 Use guard clauses when:
 - There are multiple validations that must all pass before executing the main logic.
@@ -898,7 +926,7 @@ void processOrder(Order order, User user) {
 
 ## Recommended Leetcode Problems
 
-Now it's time to test your understanding and mastery of writing branching code. The following leetcode problems are the ones that involve relatively complicated branching statements.
+Now it's time to test your understanding and mastery of writing branching code. The following leetcode problems are the ones that involve relatively complicated branching logic.
 
 The following problems don't involve using data structures or algorithms:
 - [13. Roman to Integer](https://leetcode.com/problems/roman-to-integer/)
@@ -929,28 +957,28 @@ The following problems somehow involves data structures such as stack, binary tr
 
 ## Idea of Repetition
 
-Repetition has great power, as it's the reason why our finite number of lines of code could handle infinite number of problems. When working with collections of arbitrary size and problems with arbitrary scale, we have to resort to repetition. In general, there are two types of repetition in programming: loop/iteration and recursion. In fact, they could be converted to each other. 
+Repetition has great power, as it allows a finite set of instructions (our code) to handle infinite number of problems. When dealing with collections of arbitrary size or problems of arbitrary scale, repetition is necessary. In programming, there are two types of repetition in programming: loops (iteration) and recursion. In fact, loops and recursion are interchangeable in the sense that any loop can be rewritten recursively and vice versa.
 
-If we need to do something for more than once or an uncertain number of times to achieve some goal, we should consider loop or recursion. So when we sketch an algorithm in our mind, we need to identify in the process/algorithm what do we need to do for potentially many times, and then that task is very likely to be expressed as a loop or recursion.
+If we need to do something for more than once or an unknown number of times to achieve some goal, we should consider loop or recursion. When designing an algorithm, we need to identify steps that might need to repeat many times in the process/algorithm, and those steps will likely be expressed as a loop or recursion.
 
-In this section, we will discuss loop/iteration, and find a proper way to implement and reason about loops. 
+In this section, we’ll focus on loops (iteration) and discuss systematic ways to implement and reason about them.
 
 ## Loop Statements
 
 Loops allow a program to repeat a block of statements(a set of actions) multiple times until a condition is met. Different programming languages have different types of supported looping mechanisms. 
 
 You should know about the following types of loops and their structures:
-- `while` loop is a type of condition-controlled loop and is often used when you don’t know how many times you’ll loop.
-- `for` loop is a type of counting loop and is often used when you know how many iterations are required for the loop, such as iterating over arrays, lists and strings.
+- `while` loop is a type of **condition-controlled** loop and is often used when you don’t know in advance how many iterations you’ll need.
+- `for` loop is a type of **counting** loop and is often used when you know how many iterations are required, such as iterating over arrays, lists and strings of known length.
 - `for-each` loop is a type of simplified and enhanced `for` loop that is used for clean iteration over collections.
-- `do-while` loop is a special type of `while` loop that executes at least once, which is rarely used but good to know.
+- `do-while` loop is a variant of `while` loop that executes the loop body at least once, which is rarely used but good to know.
 
 You should also be familiar with the following loop control statements:
 - `break` immediately terminates the loop, and it's used for early exit when a desired condition is met.
-- `continue` skips the rest of the current iteration and proceeds to the next iteration (the `update` part in `for` loop will still execute).
-- `return` inside loop exits not just the loop but the entire method, which is common in search problems where a result can be returned immediately.
+- `continue` skips the rest of the current iteration and proceeds to the next iteration (in a `for` loop, it still executes the `update` part before the next condition check).
+- `return` inside loop exits not just the loop but the entire function/method, which is common in search problems where a result can be returned immediately.
 
-The most basic loop structure is the `while` loop structure, and all other loop mechanisms could be converted to a `while` loop. For example, `for` loop can be easily converted to `while` loop, but it's easier to write and read than the `while` loop counterpart. In fact, in competitive programming, you will likely use `for` loop more often than `while` loop.
+The most basic loop structure is the `while` loop structure, and all other loop mechanisms could be converted to a `while` loop. For example, `for` loop can be easily converted to `while` loop, but it's often easier to write and read than the `while` loop counterpart. In fact, in competitive programming, you’ll likely use `for` loops a lot (for counting or iterating collections) and `while` loops for more open-ended repetition.
 
 ```java
 // while loop structure
@@ -2813,7 +2841,7 @@ Hard
 
 Recursion is when a function calls itself to solve a smaller piece of a larger problem.
 
-Recursion is also a form of repetition, but in all of the previous notes, we never discuss when to use loop vs. recursion.
+Recursion is another form of repetition, but in all of the previous notes, we never discuss when to use loop vs. recursion.
 
 Almost every loop element has a recursive corresponding counter part. Since recursion itself is closely related to algorithms (in fact you rarely use recursion if you are not implementing an algorithm), it deserves its own treatment, a whole notebook dedicated to it.
 
