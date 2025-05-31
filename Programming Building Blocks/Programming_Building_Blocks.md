@@ -1643,37 +1643,38 @@ if (!checkLoopInvariant()) throw new RuntimeException("Invariant broken after lo
 
 #### Loop Variable Semantics
 
-**Know the Variables**: A key idea that cannot be over-emphasized - you should always be clear about the meaning/definitions of the variables that you declare and use in the program, as each of them serves a purpose and could be subject to some constraints. A clear and accurate understanding of every variables used in the program is the premise of ensuring we perform correct read and write operations on them.
+A key idea that cannot be over-emphasized: you should always be clear about the meaning/definitions of the variables that you declare and use in the program, as each of them serves a purpose and could be subject to some constraints. A clear and accurate understanding of every variables used in the program is crucial, while misunderstanding a variable’s role is a common source of bugs.
 
 We discussed about variables accessed in the loop briefly in the section of loop variant, and now is a good time to scrutinize them. We don't need to concern ourselves with the variables not accessed in the loop, because they have no impact on how the loop operates.
 
 For the variables that are accessed in the loop, there are two categories.
 
-**Contextual Variables**: Variables that are read-only inside the loop, but they are critical to its behavior.
-- They don't change their value in the loop, so they could be considered as constants, but still semantically essential.
-- They define boundaries and contexts for iteration and they’re referenced constantly. For the loop, they often act as parameters or inputs.
+**Contextual Variables**: variables that are read-only inside the loop.
+- They remain constant during the loop, but are still semantically essential.
+- They define boundaries and contexts for iteration and they're referenced constantly but aren't updated. For the loop, they often act as parameters or inputs.
 - They may not participate in control flow progression, and even though they’re not "control" or "state" variables, they form the logical framework in which loop computation takes place.
-- They may appear in the loop condition (e.g., $i < n$), but since they do not change over time, and thus do not drive the termination, while the actual progress is made by Loop Control Variables.
-- They may appear in the loop invariants (e.g., $nums[]$), but they don't carry stateful information, but provides the context of State-Carrying Variables.
+- They may appear in the loop condition (e.g., $i < n$), but since they do not change over time, they do not drive the termination. The actual progress is made by Loop Control Variables.
+- They may appear in the loop invariants (e.g., $nums[]$), but they don't carry stateful information, only provides the context of State-Carrying Variables.
 
-**Stateful Variables**: Variables that may be modified during loop execution. They play different roles in the logic and semantics of the loop and can be classified into three distinct categories:
+**Stateful Variables**: variables that could change during the loop. They represent the evolving state and can be further split into three distinct categories:
 
 1. **Loop Control Variables**: stateful variables that are read in the loop conditions, including the exit conditions. 
-- They control whether the loop continues or terminates.
+- They directly affect the loop's control flow by controlling whether the loop continues or terminates.
 - They collectively map to an abstract measure of how close the loop is to termination, which is the loop variant.
-- They must change for each iteration, meaning at least one of the loop control variables should be assigned a new value. Otherwise the loop will run indefinitely.
-- They are typically also part of loop invariants and they help describe how much work has been done. In fact, you can hardly analyze or describe a loop without reference to the loop control variables.
+- They must change for each iteration, meaning at least one of them should be assigned a new value. Otherwise the loop will run indefinitely.
+- They are typically also part of the loop invariants and they help describe how much work has been done. In fact, you can hardly analyze or describe a loop without reference to the loop control variables.
 
-2. **State-Carrying Variables**: stateful variables that accumulate or evolve state of the loop, and often embody intermediate product of the loop.
+2. **State-Carrying Variables**: stateful variables that accumulate or evolve state through the loop.
+- They often embody intermediate product of the loop.
 - They represent state being built, accumulated, or transformed across iterations.
 - They are directly tied to loop invariants, which describe their meaning per iteration.
-- They have values that hold semantic meaning tied to the loop’s purpose, even though they don’t necessarily affect loop flow.
-- They may or may not appear in loop variants.
+- They have values that hold semantic meaning tied to the loop's purpose, even though they don't necessarily affect loop flow.
+- They may or may not appear in loop variants or loop conditions.
 
-3. **Incidental Variables**: all other stateful variables. Although they also have many kinds, we don't divide them further.
-- They are modified inside the loop but neither drive the loop's control logic nor carry meaningful loop invariants.
+3. **Incidental Variables**: all other stateful variables. Although they also have many kinds, we don't subdivide them further.
+- They are modified inside the loop but neither drive the loop's control logic nor carry meaningful role in loop invariants.
 - They mainly support secondary purposes such as side effects or auxiliary operations that are unrelated to loop control or algorithmic correctness. 
-- They include any variables defined inside the loop, and these variables are short-lived and temporary as they don't carry information across iterations.
+- They include any variables defined inside the loop. These variables are short-lived and temporary because they don't carry information across iterations.
 - They include any variables that serve external purposes, such as logging, I/O, metrics collection etc. They are part of the loop's side effects but not tied to its main purpose.
 - They include any variables that are part of the legacy or misplaced code. They could be never used and don't affect anything, serving no functional purposes. 
 
@@ -1686,26 +1687,26 @@ For the variables that are accessed in the loop, there are two categories.
 When we analyze a loop, the meaning of the Contextual Variables are often straightforward. But for the Stateful Variables, many people struggle to properly define their meanings. Let’s revisit a classic example:
 
 ```java
-int n = nums.length;       // [Constant]
+int n = nums.length;       // [Contextual Constant]
 int sum = 0;               // [State-Carrying]
 for (int i = 0; i < n; i++) {  // [Loop Control]
     sum += nums[i];        // state evolves
 }
 ```
 
-For **Contextual Variables** in the example, $n$ is part of the control logic defining the loop range and is used in loop condition. and $nums[]$ provides context of operations on stateful variable, which is $sum$.
+For **Contextual Variables** we can describe their role in loop control logic and how they provide context. In the example, $n$ is part of the control logic defining the loop range and is used in loop condition. $nums[]$ provides context of operations on stateful variable, which is $sum$.
 
-For a **Loop Control Variable**, we can combine the initialization, termination and update of the control variable to describe it, and stress its connection to the loop variant. In the above example,
-- **Meaning of $i$**: $i$ is the loop control variable. To be more specific, it's the index variable we use to access the element in the array one-by-one. Its initial value is $0$, which corresponds to the first element, and we increment it by $n$ for after iteration. The loop continues until $i$ reaches $n$, ensuring that the value of $i$ covers the range of $[0...n-1]$ and each element is processed exactly once.
-- **Connection to Loop Variants**: the loop variant is the number of remaining elements not yet examined in the array, which is the sub array $nums[i...n-1]$, whose size is closely tied to $i$. When this subarray becomes empty, the loop terminates.
+For a **Loop Control Variable**, we can combine the initialization, termination and update of the control variable to describe/define it, and stress its connection to the loop variant/invariant. In the above example,
+- **Meaning of $i$**: it is the loop control variable. To be more specific, it's the index variable we use to access the element in the array one-by-one. Its initial value is $0$, which corresponds to the first element, and we increment it by $1$ for each iteration. The loop continues until $i$ reaches $n$, ensuring that the value of $i$ covers the range of $[0...n-1]$ and each element is processed exactly once.
+- **Connection to Loop Variants**: the loop variant is the number of remaining elements not yet examined in the array, which is the sub array $nums[i...n-1]$, whose size is closely tied to $i$. When this subarray becomes empty, which is when $i=n$, the loop terminates.
 - **Connection to Loop Invariants**: $i$ helps define what work has already been done. As mentioned below, we cannot state the loop invariant without mentioning $i$.
 - **Oversimplification**: some people may say: "for each iteration $i$ points to an element in the array, which will be added to $sum$". This is also ok, but a little oversimplified, because it only states its meaning for a particular iteration, without showing the bigger picture of how it's related to the whole loop.
 
-For a **State-Carrying Variable**, we can state how it's initialized, whether it's connected with loop invariant, how it's modified to maintain the invariant and what it tells us after termination. In the above example,
+For a **State-Carrying Variable**, we can state how it's initialized, how it's connected with loop invariant, how it's modified to maintain the invariant and what it tells us after termination. In the above example,
 - **Meaning of $sum$ and Loop Invariant**: as a variable that accumulates the summation of elements in $nums[]$, at the start of iteration $i$, $sum$ is the total sum of element in $nums[0...i-1]$. Notice that the loop control variable $i$ also plays a part in the loop invariant, because it also indicates how much progress we have made.
 - **Initialization, Maintenance and Termination**: $sum$ is initially $0$, which is a proper summation value of an empty subarray $nums[0...-1]$ and respects the invariant. For each iteration, the number pointed by $i$, which is $nums[i]$ will be added to $sum$, maintaining the invariant. According to the loop variant, there is only one way the loop terminates, that is when $i=n$, and after termination $sum$ is the total summation of the $nums[]$ array.
 - **Oversimplification**: when new programmers are asked about the meaning of $sum$, some say "it's the sum of all elements in the integer array $nums[]$". 
-	- They are not entirely wrong about the purpose, but they are wrong about the timing: they forget that $sum$ is a stateful variable, not a constant. Its value changes during the loop, and it only becomes the total sum after termination. So if we access it within the loop, we cannot assume it is the sum of all elements.
+	- They are not entirely wrong about the purpose, but they are wrong about the timing: they forget that $sum$ is a stateful variable, not a constant. Its value changes during the loop, and it only becomes the total sum after termination. So if we access it within the loop, we cannot assume it stores the sum of all elements.
 	- The biggest problem about this definition is that they don't see that $sum$ is modified by the loop for every iteration. Thus we should define the meaning of $sum$ with regard to the iterations of the loop, that is to contextualize its meaning per iteration, which often leads to an invariant.
 - Normally, you will see that loop invariants are often the properties or definitions of some State-Carrying Variables, but Loop Control Variables are often used as parameters in loop invariants.
 
@@ -1737,10 +1738,10 @@ We will see more examples in later sections.
 #### Good Questions to Ask
 
 What Makes a Good Invariant:
-- It connects meaningfully to the goal of the loop.
+- It connects meaningfully to the loop goal.
 - A non-trivial property that involves at least one variable modified in the loop.
-- It’s always true during loop execution, and is preserved across all iterations.
-- It’s strong enough to help prove the loop works correctly, and must be true for the loop to behave correctly.
+- It's always true during loop execution, and is preserved across all iterations.
+- It's strong enough to help prove the loop works correctly, and must be true for the loop to behave correctly.
 
 Summary of Key Questions a Programmer Should Learn to Ask:
 - What is the loop trying to accomplish?
