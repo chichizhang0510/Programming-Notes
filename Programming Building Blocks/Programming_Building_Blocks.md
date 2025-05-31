@@ -19,7 +19,7 @@
       - [Distributive Laws](#distributive-laws)
       - [Absorption Laws](#absorption-laws)
       - [Exclusive OR (XOR)](#exclusive-or-xor)
-  - [Tricks and Caveats](#tricks-and-caveats)
+  - [Writing Good Branching Code](#writing-good-branching-code)
     - [Invert Complicated Conditions](#invert-complicated-conditions)
     - [Treat Overlapping Conditions Carefully](#treat-overlapping-conditions-carefully)
     - [Reordering Branching Code](#reordering-branching-code)
@@ -30,7 +30,7 @@
     - [Use Guard Clauses to Flatten Nested Branches](#use-guard-clauses-to-flatten-nested-branches)
   - [Recommended Leetcode Problems](#recommended-leetcode-problems)
 - [Loop/Iteration](#loopiteration)
-  - [Idea of Repetition](#idea-of-repetition)
+  - [The Idea of Repetition](#the-idea-of-repetition)
   - [Loop Statements](#loop-statements)
   - [Methodical Loop Analysis](#methodical-loop-analysis)
     - [Elements of a Loop](#elements-of-a-loop)
@@ -670,7 +670,7 @@ $$
 Thus in programming languages, we have the following:
 - `(A && !B) || (!A && B)` is equivalent to `A ^ B`, and vice versa
 
-## Tricks and Caveats
+## Writing Good Branching Code
 
 When implementing branching, there are some good practices and common pitfalls to keep in mind. These optional tips can improve performance, clarity, and maintainability. We’ll revisit some of these tricks later as well.
 
@@ -955,7 +955,7 @@ The following problems somehow involves data structures such as stack, binary tr
 
 # Loop/Iteration
 
-## Idea of Repetition
+## The Idea of Repetition
 
 Repetition has great power, as it allows a finite set of instructions (our code) to handle infinite number of problems. When dealing with collections of arbitrary size or problems of arbitrary scale, repetition is necessary. In programming, there are two types of repetition in programming: loops (iteration) and recursion. In fact, loops and recursion are interchangeable in the sense that any loop can be rewritten recursively and vice versa.
 
@@ -1033,20 +1033,6 @@ When analyzing or designing a loop, especially for algorithmic problems, it help
 - **Loop Variant**: abstract quantity that strictly decreases in each iteration, ensuring the loop will eventually terminate.
 - **Loop Invariant**: useful properties of variables used inside the loop that are true before and after each iteration and can help reason about the correctness of the loop.
 
-In addition, we can also mention the definition of variables used in the loop, such as loop control variables and other state variables, which is optional but provides more information in the documentation.
-
-To write a correct loop, all these elements should be considered. In the following sections, we will delve into each of them in detail. We will focus on single-threaded, algorithmic loops (typical for competitive programming or algorithm exercises).
-
-I personally think **Loop Invariant** is the most valuable and important thing about a loop that helps programmer implement and reason about the loop. In a coding interview, if you cannot explain the loop invariant of a particular loop, the interviewer may think you don't understand your code and cannot prove its correctness.
-
-Asking yourself the following questions and perhaps documenting them in the code comment would be helpful:
-- what's the loop invariant?
-- What's the loop variant? Why does it guarantee the termination?
-- what's the meaning of each variable/loop?
-- what's the goal/objective of each iteration?
-- what happens after each iteration?
-- what do we know after the loop terminates?
-
 Relationships Between Elements:
 1. **Loop Premise** holds initially -> **Loop Initialization** sets variables -> **Loop Invariant** established before first iteration.
 2. **Loop Condition** is checked -> If true: **Loop Body** transforms state from iteration $i-1$ to $i$, achieving **Iteration Goal**.
@@ -1054,6 +1040,20 @@ Relationships Between Elements:
 4. **Loop Termination** when condition fails or early exit occurs.
 5. **Loop Goal** achieved after termination, if we have maintained **Loop Invariant**.
 6. **Edge cases** ensure correctness at boundaries (first, last, zero iterations, etc.).
+
+In addition, we can also mention the definition of variables used in the loop, such as loop control variables and other state variables, which is optional but provides more information in the documentation.
+
+To write a correct loop, all these elements should be considered. In the following sections, we will delve into each of them in detail. We will focus on single-threaded, algorithmic loops (typical for competitive programming or algorithm exercises).
+
+I personally think **Loop Invariant** is the most valuable and important thing about a loop that helps programmer implement and reason about the loop. In a coding interview, if you cannot explain the loop invariant of a particular loop, the interviewer may think you don't understand your code and cannot prove its correctness.
+
+Asking yourself the following questions and perhaps documenting them in the code comment would be helpful:
+- What's the loop invariant? Why it's important to maintain it?
+- What's the loop variant? Why does it guarantee the termination?
+- What's the meaning of each variable/loop?
+- What's the goal/objective of each iteration?
+- What happens after each iteration?
+- What do we know after the loop terminates?
 
 ### Loop Goal
 
@@ -1318,74 +1318,107 @@ if (nums == null || nums.length == 0) return -1; // handle empty array explicitl
 
 ### Loop Variant
 
-**Definition**: A loop variant is a concrete measure (often numeric) that shows how close a loop is to termination. It's a quantity that:
+**Definition**: A loop variant is a concrete measure that is often numeric and shows how close a loop is to termination. It's a quantity that:
 - Changes in each iteration, often in a sense of decrement.
 - Moves consistently toward a condition that stops the loop.
 - Guarantees that the loop won't run forever.
 
 **Relation**: Directly related to the loop control variables, how they should be initialized and updated in loop body, and thus closely connected with loop initialization, loop conditions and loop termination.
 
-**Importance**: Guarantees loop termination by ensuring measurable progress.
+**Importance**: Guarantees loop termination by ensuring measurable progress. It’s essential for reasoning about a loop’s performance and termination.
 
 ---
 
-**Notes**:
-- In single-thread algorithmic programs, a loop is not supposed to run forever, and any loop should eventually terminate. The loop variant is such a measure of how close the loop is to termination. For a loop destined to terminate in a deterministic way, it must have a finite number of iterations, and the loop variant acts like a counter of the number of remaining iterations, going from a non-negative integer to 0.
-- Another way to describe loop variant: You can think of the loop variant as a "countdown" toward loop termination.
-    - Each iteration "ticks" the countdown closer to zero or some termination boundary.
+**Meaning and Role of Loop Variant**
+- The loop variant is a measure of how close the loop is to termination.
+    - In single-thread algorithmic programs, a loop is not supposed to run forever, and any loop should eventually terminate. 
+    - For a loop destined to terminate in a deterministic way, it must have a finite number of iterations, and the loop variant acts like a counter of the number of remaining iterations, going from a non-negative integer to 0.
+- Another way to describe loop variant: You can think of the loop variant as a countdown timer toward loop termination.
+    - Each iteration ticks the timer closer to zero or some termination boundary.
     - When the variant reaches a termination point, the loop stops.
-- To put loop variant under the context of programming elements, an explanation is to treat the loop body as a function, all the variables accessed(read or write) in the loop body as parameters of that function, and the output value should decrease for every iteration. 
-    - Indeed, if we take a closer look at the variables accessed in the loop body, they can be divided into several categories and we will discuss that later. The ones that are directly relevant to loop variant are called loop control variables.
     - It's also equivalent to define loop variant as some numeric measure that strictly increases toward a limit with each iteration.
-- **Loop Control Variables**: variables used in loop conditions(including exit conditions), whose values could be changed inside the loop body. They could have many forms. 
-    - For example in `for (int i = 0; i < n; i++)`, the integer $i$ is a loop index variable, which is a common form of loop control variables.
-    - Loop control variables directly control whether the loop continues or terminates, and thus they collectively map to an abstract measure of how close the loop is to termination, which is the loop variant.
-    - A concept that is closely related to loop control variables is **loop (variable) range**, that is the valid range of the variables that are allowed to go into the loop body. Typically, when the variables go outside of its valid range, the loop condition will evaluate to false and the loop terminates.
-    - As you will see, loop control variables also typically appear in the loop invariant. Due to their duel roles in the loop code, the choice of their definitions can impact the complexity of reading and writing the loop.
-- Loop variants are represented by loop control variables, but they are not identical. 
-    - A loop variant is typically derived from loop control variables. It is an abstract, logical measure that maps clearly to the control variables.
-    - Loop control variables are concrete variables modified each iteration and appear directly in loop conditions.
-    - For example in binary search, we have the $left$ and $right$ pointers of an array, which are loop control variables. But the loop variant is the size of the subarray delimited by $[left...right]$. A correct implementation of a loop ensures that loop control variables are updated after each iteration, moving the loop toward termination. Here the size of the subarray $[left...right]$ must decrease for each iteration, and when it reaches 0, the loop terminates.
-- **Loop Update**: Concrete code that modifies loop control variables.
-    - Loop Update is a concrete progress mechanism that changes the loop control variables, while loop variant is an abstract measure of progress.
-    - For example `i++`, `left++`, `right--` are loop update (the actual code modifying loop variables); while the size of search space, number of unprocessed nodes, etc are loop variants.
-    - The correctness and successful termination of a loop depends on loop update. For each iteration, at least one of the loop control variables should be assigned a new value. Otherwise the loop will run indefinitely.
+- To be more specific, we can put loop variant under the context of programming elements.
+    - An explanation is to treat the loop body as a function, all the variables accessed(read or write) in the loop body as parameters of that function, and the output value should decrease for every iteration. 
+    - Indeed, the variables accessed in the loop body can be divided into several categories and we will discuss that later. The ones that are directly relevant to loop variant are called **loop control variables**.
+- Although we typically assume a loop should always terminate due to some loop condition, there are exceptions especially when we consider multi-threading and event loop programs. 
+    - For example, in a producer-consumer pattern multi-threaded program, the consumer could be long-running until the system stops it. 
+- If you take a look at the wikipedia page of loop variant, you will see some rather formal academic definitions, so here I try to somehow simplify it but still keep the essence.
+- Both loop variant and loop invariant are connected with meaning and definition of variables accessed in the loop. 
+    - There are variables accessed in the loop that are not considered as loop control variables and thus have little to do with loop variant, so it's normal for you to feel confused. 
+    - We will discuss their distinction and more about loop variant, loop control variables in the section of loop invariant.
+
+---
+
+**Loop Control Variables**
+- Loop Control Variables are variables used in loop conditions. Their values could be modified inside the loop body, and they could take many forms. 
+- For example in `for (int i = 0; i < n; i++)`, the integer $i$ is a loop index variable, a common form of loop control variables.
+- Loop control variables directly control whether the loop continues or terminates, and thus they collectively map to an abstract measure of how close the loop is to termination, which is exactly the loop variant.
+- **Loop (variable) range** is closely related to loop control variables, which means the valid range of values that loop control variables could take and are allowed to go into the loop body. Typically, when those variables go outside of their valid range, the continuation condition will evaluate to false and the loop terminates.
+- Loop control variables also typically appear in the loop invariants. Due to their duel roles in the loop code, the choice of their definitions can impact the complexity of reading and writing the loop.
 - We care about how loop control variables are initialized outside loop, how they are updated inside the loop body, and whether they can lead to successful termination. 
     - For example, if we use a loop index variable as the loop control variable, we should pay attention to the index range: the start index, the end index and how the index is updated. 
-    - The start and end of the loop index indicates the range of the array/list that the loop will examine. The reason why choosing a specific start and end index often have some mathematical meanings in the context, and it's a good practice to state that in comment, unless it's very obvious.
+    - The start and end of the loop index indicates the range of the array/list that the loop will examine. The reason of choosing a specific start and end index often have some mathematical meanings in the context, and it's a good practice to state that in comment, unless it's very obvious.
     - `for (i = a; i < b; i++)` is equivalent to `for(i = a; i <= b - 1; i++)`, both iterate `b - a` times. The loop range is `[a...b-1]`.
     - `for (i = a; i > b; i--)` is equivalent to `for(i = a; i >= b + 1; i--)`, both iterate `a - b` times. The loop range is `[b+1...a]`.
-- There is a lot to talk about how the loop control variables could be updated.
-    - **Order-sensitive Loops**: Some loops depend on iteration order (stateful accumulations), e.g., DP, prefix sums.
-    - **Order-agnostic Loops**: Some loops don’t depend on iteration order (map-reduce style parallel loops), e.g., summing independent values.
-    - **Iteration direction**: Typically when traversing a list/array, iterating from left to right and right to left are equivalent(may requires some conversion on how we initialize and update the loop control variables). Sometimes one direction would be easier than the other and for some algorithms only one of the directions work.
-- If you take a look at the wikipedia page of loop variant, you will see some some rather formal academic definitions, so here I tried to somehow simplify it but still keep the essence.
-- Although we typically assume a loop should always terminate due to some loop condition, there are exceptions especially when we consider multi-threading and event loop programs. For example, in a producer-consumer pattern multi-threaded program, the consumer could be long-running until the system stops it. 
+- We sometimes use **loop variables** to refer to loop control variables for brevity in later sections.
+
+---
+
+**Loop Update**
+- Loop Update means concrete code that modifies loop control variables.
+- It is a concrete progress mechanism that changes the loop control variables, while loop variant is an abstract measure of progress.
+- For example `i++`, `left++`, `right--` are loop update (the actual code modifying loop variables); while the size of search space, number of unprocessed nodes, etc. are loop variants.
+- The correctness and successful termination of a loop depends on loop update. For each iteration, at least one of the loop control variables should be assigned a new value. Otherwise the loop will run indefinitely.
+- In addition, the way we update the loop variables have significance to how the loop works. 
+    - **Iteration Order**: 
+        - **Order-sensitive Loops**: Some loops depend on iteration order (stateful accumulations), e.g., DP, prefix sums.
+        - **Order-agnostic Loops**: Some loops don’t depend on iteration order (map-reduce style parallel loops), e.g., summing independent values.
+    - **Iteration Direction**: 
+        - Typically when traversing a list/array, iterating from left to right and right to left are equivalent, although we may need some conversion on how the loop variables are initialized and updated. 
+        - Sometimes one direction would be easier than the other, and for some algorithms only one of the directions work.
+
+---
+
+**Loop Variants vs. Loop Control Variables**
+- Loop variants are represented by loop control variables, but they are not identical. 
+- A loop variant is typically derived from loop variables. It is an abstract, logical measure that maps clearly to the variables.
+- Loop control variables are concrete variables modified each iteration and appear in loop conditions.
+- For example in binary search 
+    - We have the $left$ and $right$ pointers of an array, which are loop control variables. 
+    - But the loop variant is the size of the subarray delimited by $[left...right]$. 
+    - A correct implementation of a loop ensures that loop control variables are updated after each iteration, moving the loop toward termination. 
+    - Here the size of the subarray $[left...right]$ must decrease for each iteration, and when it reaches 0, the loop terminates.
+
+---
+
+**Loop Variant and Time Complexity**
 - Each loop could have multiple loop variants and the net effect is to take the minimum of them. 
     - For this reason, loop variants are closely tied to the time complexity of the loop.
-    - For example, a loop could have loop variant 1, which makes the loop terminates in 20 iterations, but the loop could also have another loop variant 2, which makes the loop terminates in 10 iterations. The net effect of the two loop variants, by taking the minimum, is that the loop will terminate in 10 iterations.
+    - For example, a loop could have loop variant 1, which makes the loop terminates in 20 iterations, but the loop could also have another loop variant 2, which makes the loop terminates in 10 iterations. 
+    - The net effect of the two loop variants, by taking the minimum, is that the loop will terminate in 10 iterations.
 - The time complexity of running a loop is directly tied to loop variant: 
     - The loop variant's rate of change impacts time complexity: how the loop control variables are initialized, how they are updated and when the loop terminates. So loop variant helps analyze loop performance from design.
     - Variant decreases by $1$ -> $O(n)$
     - Variant halves each time -> $O(\log(n))$
-- Both loop variant and loop invariant are connected with meaning and definition of variables accessed in the loop. There are variables accessed in the loop that are not considered as loop control variables and thus have little to do with loop variant, so it's normal for you to feel confused. We will discuss their distinction and more about loop variant, loop control variables in the section of loop invariant.
 
 ---
 
 **Identify Loop Control Variables and Loop Variant**:
-1. Identify the loop condition clearly. For example, `while (left <= right) { ... }`.
-2. Extract variables involved that change inside the loop: here, $left$ and $right$ (both potentially modified). These are your loop control variables.
-3. Define loop variant clearly:
+1. Identify the loop condition. 
+    - For example, `while (left <= right) { ... }`.
+2. Extract variables in that condition change during the loop.
+    - Here, $left$ and $right$ (both potentially modified). These are your loop control variables.
+3. Define a variant from those variables:
     - Usually a single numeric measure directly derived from these variables.
     - Must consistently approach a termination boundary.
-    - Example for binary search: Variant = $right - left + 1$ (size of search space), which decreases every iteration (for a correct implementation).
+    - Example for binary search: Variant = $right - left + 1$ (size of search space), which decreases every iteration for a correct implementation.
 
 However, this only tells you how to identify them, not how to choose them for your loop.
 
 ---
 
 **Concept Examples**:
-- Loop index $i$ could increment (`i++`) or decrement (`i--`), which means the remaining number of unexamined elements in the array decreases($nums[i...n-1]$ or $nums[0...i]$ depending on the iteration direction)
+- A loop index $i$ could increment (`i++`) or decrement (`i--`), which makes the remaining number of unexamined elements in the array decrease($nums[i...n-1]$ or $nums[0...i]$ depending on the iteration direction)
 - Size reduction of search space ($right - left$ decreases for each iteration)
 
 **Code Example**:
@@ -1399,10 +1432,10 @@ A **loop invariant**:
 - Is a non-trivial logical condition/statement/proposition about variables accessed in the loop
 - Is true before the loop starts
 - Remains true before and after every iteration
-- Helps us reason about correctness of the loop, as it's true after loop terminates
+- Helps reason about correctness of the loop, as it's true after loop terminates
 - Ultimately supports the achievement of the loop goal
 
-Loop invariant is connected with most loop elements and it's the key of why complicated loops work. It is like a promise that you make before the loop starts, and you must keep this promise through every iteration until the loop ends.
+Loop invariants are connected with most loop elements and are the key to understanding why the loop works, especially for more complex loops. It is like a promise that you make before the loop starts, and you must keep this promise through every iteration until the loop ends.
 
 ---
 
@@ -1419,28 +1452,31 @@ for (int i = 0; i < n; i++) {
 In the above code example, the loop invariant could be stated as bellow:
 > At the start of `#i` iteration, $max$ is the maximum element in $nums[0..i-1]$.
 
-- At the start of the `#0` iteration, that is before the main loop, $max$ is assigned `Integer.MIN_VALUE`, a reasonable initial value, and the code also suggests if the $nums[]$ is empty, $max$ will end up with this value. So initially, $nums[0...-1]$ is an empty subarray, and $max$ being `Integer.MIN_VALUE` conforms the loop invariant.
+- At the start of the `#0` iteration, that is before the main loop, $max$ is assigned `Integer.MIN_VALUE` (max of an empty set can be treated as $- \infty$), a reasonable initial value, and the code also suggests if the $nums[]$ is empty, $max$ will end up with this value. So initially, $nums[0...-1]$ is an empty subarray, and $max$ being `Integer.MIN_VALUE` conforms the loop invariant.
 - During the loop, the `if` branching code maintains the loop invariant: if $max$ is the maximum element in $nums[0..i-1]$ at the start of `#i` iteration, then it would be the maximum element in $nums[0..i]$ at the end of the `#i` iteration, which after the increment of $i$, makes the loop invariant also true at the start of `#i+1` iteration.
-- After the loop terminates, we actually have $i=n$, which is the start of the final iteration that never enters the loop body. If we successfully maintain the loop invariant throughout every iteration, which we do, then according to the loop invariant, $max$ is the maximum element in $nums[0..n-1]$, by substituting $i$ with $n$. Since $nums[0..n-1]$ is the entire array, now we can be certain that $max$ store the maximum element of the array.
+- After the loop terminates, we have $i=n$, which is the start of the final iteration that never enters the loop body. If we successfully maintain the loop invariant throughout every iteration, which we do, then according to the loop invariant, $max$ is the maximum element in $nums[0..n-1]$, by substituting $i$ with $n$. Since $nums[0..n-1]$ is the entire array, now we can be certain that $max$ store the maximum element of the array.
+
 ---
 
 <img src="img\loop_invariant_on_a_line.png" alt="loop_invariant_on_a_line" style="display: block; margin-left: auto; margin-right: auto;">
 
 **Notes**:
+- Graphically, if you imagine the loop's execution timeline, the invariant holds at those boundary points between iterations.
 - We typically state the loop invariant as something that is true at the start of every iteration.
 - When we talk about the "start of an iteration",
-    - In both `while` and `for` loops, when we say the start of an iteration, we mean the moment just before the evaluation of the loop condition, and after the update of the previous iteration. As for the end of an iteration, in `for` loops, we consider it the moment after the update part in loop header executes, in the above example it's `i++`; in `while` loops, we consider it the moment after the last statement inside the loop body.
+    - In both `while` and `for` loops, the start of an iteration means the moment just before the evaluation of the loop condition, but after the update of the previous iteration. 
+    - As for the end of an iteration, in `for` loops, we consider it the moment after the update part in loop header executes, in the above example it's `i++`; in `while` loops, we consider it the moment after the last statement inside the loop body.
     - So either way, the end of an iteration is identical to the start of the next iteration, and you can see this from the above image, which corresponds to the red part.
-    - For the first iteration: the moment at which we check the loop invariant just prior to the first iteration is immediately after the whole loop initialization, which includes the initial assignment to the loop-counter variable, and just before the first loop condition evaluation in the loop header.
-    - For the last iteration: the loop invariant is true before the loop condition evaluation, but since the loop terminates at this iteration, just after the loop terminates, the loop invariant is still true. But those variables defined in the loop won't be accessible anymore.
+- Loop invariant in the first and the last iteration:
+    - Before the first iteration: the moment at which we check the loop invariant just prior to the first iteration is immediately after the whole loop initialization, which includes the initial assignment to the loop variables, and just before the first loop condition evaluation in the loop header.
+    - After the last iteration: the loop invariant is true before the loop condition evaluation, but since the loop terminates at this point, just after the termination, the loop invariant is still true. But those variables defined in the loop won't be accessible anymore. Notice that if the code doesn't go into the loop body, we don't consider it as an iteration.
 - Loop invariants are highly case-by-case, but they should be non-trivial, dynamic, and structurally relevant properties that 
-    - Depend on loop-executed changes (e.g., updated variables)
+    - Depend on loop-executed changes, e.g., updated variables
     - Are necessary to prove the loop's correctness
     - Would not obviously be true unless carefully maintained during each iteration.
-- In the above example, the statement "$n$ is the length of $nums[]$" is always true (before, during, and after loop), never changes, does not depend on the loop, and is not useful for proving correctness of the loop's behavior. So it is not what we consider a loop invariant in the algorithmic sense.
-- In general, a loop invariant must hold at the start of each iteration (before the loop body executes), and it must be re-established by the end of that iteration (just before the next condition check or loop exit).
-- In complex loops, you may have multiple invariants tracking different aspects of state. They must all hold simultaneously at the start of each iteration.
-- While the invariant is guaranteed at iteration boundaries, it may not hold during execution of the loop body, which corresponds to the blue part in the image, especially in complex or multi-step loops. This is OK as long as it’s restored by the end of the iteration.
+- In the above example, the statement "$n$ is the length of $nums[]$" is always true (before, during, and after loop), never changes, does not depend on the loop, and is not useful for proving correctness of the loop's behavior. So we don't consider it a loop invariant in the algorithmic sense.
+- In general, a loop invariant must hold at the start of each iteration (before the loop body executes), and it must be re-established by the end of that iteration (just before the next condition check or loop exit). But it may not hold during execution of the loop body, which corresponds to the blue part in the image, especially in complex or multi-step loops. This is OK as long as it’s restored by the end of the iteration.
+- In complex loops, you may have multiple invariants tracking different states. They must all hold simultaneously at the start of each iteration.
 
 ---
 
@@ -1456,8 +1492,8 @@ In the above code example, the loop invariant could be stated as bellow:
     - The loop invariant ensures correctness within each iteration. At the start of each iteration, the invariant holds.
 - Loop control variables often serve a dual purpose:
     - As part of the loop variant, they represent how much work is left and they drive termination through loop conditions.
-    - As part of the loop invariant, they help describe how much work has been done, acting as parameters in loop invariants.
-    - This dual role makes loop control variables the bridge between loop variant and loop invariant.
+    - As part of the loop invariant, they help describe how much work has been done, acting as parameters.
+    - This dual role makes loop control variables the bridge between loop variant and invariant.
 - Some people say the loop variant represents the future of the loop and the loop invariant represents the past of the loop.
 
 Variant vs. Invariant: Complementary Roles
@@ -1466,19 +1502,19 @@ Variant vs. Invariant: Complementary Roles
 | **Purpose**             | Guarantees termination                    | Guarantees correctness of computation    |
 | **Tracks**              | How close the loop is to finishing        | What property is consistently maintained |
 | **Changes?**            | Must strictly decrease (well-founded)     | Must not change (logically preserved)    |
-| **Failure to Maintain** | Risk of infinite loop                     | Risk of logical error / incorrect output |
-| **Analogous to**        | A countdown clock                         | A safety contract                        |
+| **Failure to Maintain** | Risk of infinite loop                     | Risk of logical error                    |
+| **Analogous to**        | A countdown timer                         | A safety contract                        |
 
 ---
 
 **Exception**:
-- There are special cases that could make loop invariant false after loop termination. This is because the invariant could be temporarily violated inside the loop body, and if we use `break` or `return` to early exit the loop before restoring the loop invariants, they could be false after the loop terminates.
+- There are special cases where loop invariant is false after loop termination. This is because the invariant could be temporarily violated inside the loop body, and if we use `break` or `return` to early exit the loop before restoring the loop invariants, they could be false after the loop terminates.
     - Natural loop termination, where the invariant can be assumed to hold afterward.
     - Abrupt loop termination (via break/return), where you must verify manually whether the invariant holds at the exit point.
-        - `break/return` after re-establishing invariant, like `Example_2`, then the invariant holds after the loop, 
-        - `break/return` while invariant is broken, like `Example_1`, then you have to reason about what happen to the variables used in invariants
+        - `break/return` after re-establishing invariant, like `Example_2`, then the invariant holds after the loop.
+        - `break/return` while invariant is broken, like `Example_1`, then you have to reason about what happen to the variables used in invariants.
 - You could either redefine the invariant or restructure the loop to avoid code like `Example_1`. But even if this is unavoidable, the loop invariant is still true at the start of the last iteration, and using that information along with how the variables related to loop invariants are modified before the loop exits, you could still properly reason about the correctness of the loop.
-- This means even in the special cases, loop invariants still play an important role in the reasoning about correctness, but it's just that you can't directly use it after the loop terminates and need to do some extra work.
+- This means even in special cases, loop invariants still play an important role in the reasoning, but it's just that you can't directly use it after the termination and need to do some extra work.
 
 ```java
 // Example_1
@@ -1508,20 +1544,21 @@ while (true) {
 
 #### Importance
 
-**Correctness**: loop invariants are used in proofs, especially inductive reasoning to ensure every iteration maintains certain properties essential for correctness.
-- Loop invariants are the core of correctness proofs and basis for inductive reasoning about the loop. On the other hand, deviation from loop invariant, or equivalently, failure to maintain loop invariant, implies incorrect loop implementation.
+**Correctness**: 
+- Loop invariants are fundamental for proving that a loop is correct, typically using induction. If you can establish a loop invariant and show it holds for every iteration, and that combined with loop termination it implies the goal, you’ve essentially proven your loop is correct.
+- Loop invariants are the cornerstone of formal correctness proofs for loops. On the other hand, deviation from loop invariant, or equivalently, failure to maintain loop invariant, implies incorrect loop implementation.
 - The reasoning of a loop is basically mathematical induction to prove when the loop invariant for $i-1$ iteration is true, how the loop body makes it also true for the current $i$ iteration. So that at the beginning of the iteration we have the properties of the previous loop and at the end of the iteration we need to arrive at something useful for the next iteration, which is exactly defined by the loop invariant.
-- This is essentially a proof by induction and loop invariant is essentially the inductive hypothesis.:
-    - Base case $P(0)$: The invariant holds before the first iteration of the loop (after initialization).
-    - Inductive step $P(i)$: If it holds before an `#i` iteration, the loop body may mutate state, but must ensure the invariant holds again before `#i+1` iteration.
+- This is essentially a proof by induction and loop invariant acts as the inductive hypothesis.:
+    - Base case $P(0)$: Prove the invariant holds before the first iteration of the loop (after initialization).
+    - Inductive step $P(i)$: Assume it holds at the start of `#i` iteration. Prove that after the loop body executes, it still holds at the start of `#i+1` iteration.
     - Termination $P(n)$: When the loop ends, the invariant combined with loop conditions implies the loop goal.
 
 ```plain
                                         [Initialization]
                                                 ↓
-                                        Base Case: P(0) holds
+                                      Base Case: P(0) holds
                                                 ↓
-                                            [Loop Entry]
+                                         [Loop Entry]
                                                 ↓
                                 Inductive Step: If P(i), show P(i+1)
                                                 ↓
@@ -1534,44 +1571,55 @@ while (true) {
     - Before the loop begins: Is the invariant true?
     - During each iteration: Does the loop body preserve the invariant?
     - After the loop ends: Does the invariant, combined with the loop condition being false, help prove the loop goal?
-- Loop invariants are less important for some loops, those who have little to no relation between iterations. For example in a lot of `for-each` loop, the iterations are independent, in which case loop invariant doesn't tell us much useful information. But typically loops like this doesn't require complicated analysis.
-- If you want to see an detailed example of proving the correctness of an algorithm using loop invariant, you can refer to the insertion sort chapter of *Introduction to Algorithms*, which gives a perfect demonstration. 
+- Loop invariants are less important for some loops.
+    - Not every loop needs a complex invariant analysis, especially if iterations are independent.
+    - For example in some `for-each` loops, the iterations are independent, and loop invariant doesn't tell us much useful information. Typically loops like this doesn't require complicated analysis.
+    - For another example, a simple loop that just prints each element doesn’t have an interesting invariant beyond trivial statements.
+    -  But for complex loops, especially those where each iteration builds on the last, identifying a solid invariant is crucial to understanding and verifying correctness.
+- If you want to see a classic detailed example of proving the correctness of an algorithm using loop invariant, you can refer to the insertion sort chapter of *Introduction to Algorithms*, which gives a perfect demonstration. 
 
 ---
 
-**Design and Implementation**: clear loop invariants could guide loop design and implementation.
+**Design and Implementation**: 
+- Defining a clear loop invariant can also guide you in loop design and implementation.
 - Writing or stating an invariant before coding can:
     - Clarify what the loop must maintain
     - Help programmer decide what variables are needed
     - Prevent incorrect updates or misplaced statements
 - While coding, we need keep the invariants in mind:
-    - When implementing the loop body, which is code for each iteration, we can assume the loop invariant is true at the start of the loop, and use this piece of information as the basis to come up with the loop body.
-    - We need to make sure at the end of the iteration, the invariants are preserved, which could shape the loop body.
-- Since loop invariants should be true before the first iteration, so they give us clear clue about how to implement loop initialization, how to initialize the variables, and what are the proper initial values for them.
-- Loop invariants are about how current iteration connects with all work that has been done in all previous iterations. Implementing and understanding a loop requires us to be clear what we want to go from `#i` iteration to `#i+1` iteration, and break it down into multiple smaller task. During the process, we need to generalize the loop goal as $P(n)$ and find out what $P(i)$ means, which is typically closely connected with loop invariants.
+    - When implementing the loop body, we can assume the loop invariant is true at the start of the loop, and use this piece of information as the basis to come up with the code.
+    - We also must ensure the loop body re-establishes the invariant at the end of the iteration. This requirement shapes what operations we perform and in what order.
+- Because the invariants must hold initially before the first iteration, so they give us clear clue about how to set up loop initialization, how to initialize the variables with what proper initial values.
+- Overall, the invariant connects the loop’s beginning, each iteration’s logic, and the loop’s end in one unifying statement.
+- Loop invariants are about how current iteration connects with all work that has been done in all previous iterations. 
+    - Implementing and understanding a loop requires us to be clear what we want to go from `#i` iteration to `#i+1` iteration, and break it down into multiple smaller task. 
+    - During the process, we need to generalize the loop goal as $P(n)$ and find out what $P(i)$ means, which is typically closely connected with loop invariants.
 - We will see some examples on how to utilize loop invariants in solving programming problems.
 
 ---
 
-**Documentation**: loop invariants helps the reader understand the logical structure and guarantees of the loop.
-- Source code is not just for execution, but also for reading, and not just for other people, but also for the programmer who wrote the code. Because no one could remember everything about the code they write. Proper documentation makes maintaining and understanding code much easier. And writing documentation or comment for loop, loop invariant is the most important element to include.
+**Documentation**: 
+- Including the loop invariant in comments or documentation can greatly help readers understand the logical structure and guarantees of the loop.
+- Code is read more often than written. And not just for other people, but also for the author of the code. Because no one could remember everything about the code they write. Proper documentation makes maintaining and understanding code much easier. 
+- And when writing documentation or comment for loop, loop invariant is arguably the most important thing to mention when the logic isn’t obvious.
 - Stating the invariant explicitly as a comment or docstring:
     - Helps readers understand the loop's structure
     - Makes code easier to maintain and review
     - Especially helpful for complex logic or nested loops
 - When reading code of a loop, focus on the loop invariants:
-    - If the loop invariants are clear documented, remember to inspect how it's maintained across iterations
-    - Hypothesize the invariant if it's not written, and use it to explain each line in the loop
-- Over time, a seasoned programmer will naturally internalize this habit, because it's like writing pre/post conditions, but inside the loop.
+    - If the loop invariants are clearly documented, remember to inspect how it's maintained across iterations
+    - If it's not written, hypothesize the invariant and use it to explain each line in the loop
+- Over time, as you gain experience, thinking in terms of invariants becomes second nature, because it's like writing pre/post conditions, but inside the loop.
 
 ---
 
-**Debugging**: loop invariants help check internal assumptions during development.
+**Debugging**: 
+- Loop invariants can also be a powerful debugging tool. They could help check internal assumptions during development.
 - When a loop doesn't produce the expected result:
     - Think about what should be true at the start of each iteration
     - Insert assertions or logging to validate the invariant during runtime
     - Quickly isolate the point where state diverges from expectation
-- You can add runtime assert statements or print checks to catch invariant violations.
+- You can add runtime assert statements or print checks to catch invariant violations. This can help catch the moment when the loop’s logic breaks.
 - We will see examples of property-based testing(PBT) utilizing loop invariants later.
 
 ```java
@@ -1582,13 +1630,13 @@ while (checkLoopInvariant() && condition) {
 ```
 OR
 ```java
-if (!checkLoopInvariant()) throw error;
+if (!checkLoopInvariant()) throw new RuntimeException("Invariant broken before loop start");
 while (true) {
-    if (!checkLoopInvariant()) throw error;
+    if (!checkLoopInvariant()) throw new RuntimeException("Invariant broken at iteration start");
     if (condition) break;
     loopBody();
 }
-if (!checkLoopInvariant()) throw error;
+if (!checkLoopInvariant()) throw new RuntimeException("Invariant broken after loop end");
 ```
 
 ---
@@ -1599,30 +1647,36 @@ if (!checkLoopInvariant()) throw error;
 
 We discussed about variables accessed in the loop briefly in the section of loop variant, and now is a good time to scrutinize them. We don't need to concern ourselves with the variables not accessed in the loop, because they have no impact on how the loop operates.
 
-For the variables that are accessed in the loop, there are two categories:
-1. **Contextual Variables**: Variables that are read-only inside the loop, but they are critical to its behavior.
-    - They don't change their value in the loop, so they could be considered as constants, but still semantically essential.
-    - They define boundaries and contexts for iteration and they’re referenced constantly. For the loop, they often act as parameters or inputs.
-    - They may not participate in control flow progression, and even though they’re not "control" or "state" variables, they form the logical framework in which loop computation takes place.
-    - They may appear in the loop condition (e.g., $i < n$), but since they do not change over time, and thus do not drive the termination, while the actual progress is made by Loop Control Variables.
-    - They may appear in the loop invariants (e.g., $nums[]$), but they don't carry stateful information, but provides the context of State-Carrying Variables.
-2. **Stateful Variables**: Variables that may be modified during loop execution. They play different roles in the logic and semantics of the loop and can be classified into three distinct categories:
-    1. **Loop Control Variables**: stateful variables that are read in the loop conditions, including the exit conditions. 
-        - They control whether the loop continues or terminates.
-        - They collectively map to an abstract measure of how close the loop is to termination, which is the loop variant.
-        - They must change for each iteration, meaning at least one of the loop control variables should be assigned a new value. Otherwise the loop will run indefinitely.
-        - They are typically also part of loop invariants and they help describe how much work has been done. In fact, you can hardly analyze or describe a loop without reference to the loop control variables.
-    2. **State-Carrying Variables**: stateful variables that accumulate or evolve state of the loop, and often embody intermediate product of the loop.
-        - They represent state being built, accumulated, or transformed across iterations.
-        - They are directly tied to loop invariants, which describe their meaning per iteration.
-        - They have values that hold semantic meaning tied to the loop’s purpose, even though they don’t necessarily affect loop flow.
-        - They may or may not appear in loop variants.
-    3. **Incidental Variables**: all other stateful variables. Although they also have many kinds, we don't divide them further.
-        - They are modified inside the loop but neither drive the loop's control logic nor carry meaningful loop invariants.
-        - They mainly support secondary purposes such as side effects or auxiliary operations that are unrelated to loop control or algorithmic correctness. 
-        - They include any variables defined inside the loop, and these variables are short-lived and temporary as they don't carry information across iterations.
-        - They include any variables that serve external purposes, such as logging, I/O, metrics collection etc. They are part of the loop's side effects but not tied to its main purpose.
-        - They include any variables that are part of the legacy or misplaced code. They could be never used and don't affect anything, serving no functional purposes. 
+For the variables that are accessed in the loop, there are two categories.
+
+**Contextual Variables**: Variables that are read-only inside the loop, but they are critical to its behavior.
+- They don't change their value in the loop, so they could be considered as constants, but still semantically essential.
+- They define boundaries and contexts for iteration and they’re referenced constantly. For the loop, they often act as parameters or inputs.
+- They may not participate in control flow progression, and even though they’re not "control" or "state" variables, they form the logical framework in which loop computation takes place.
+- They may appear in the loop condition (e.g., $i < n$), but since they do not change over time, and thus do not drive the termination, while the actual progress is made by Loop Control Variables.
+- They may appear in the loop invariants (e.g., $nums[]$), but they don't carry stateful information, but provides the context of State-Carrying Variables.
+
+**Stateful Variables**: Variables that may be modified during loop execution. They play different roles in the logic and semantics of the loop and can be classified into three distinct categories:
+
+1. **Loop Control Variables**: stateful variables that are read in the loop conditions, including the exit conditions. 
+- They control whether the loop continues or terminates.
+- They collectively map to an abstract measure of how close the loop is to termination, which is the loop variant.
+- They must change for each iteration, meaning at least one of the loop control variables should be assigned a new value. Otherwise the loop will run indefinitely.
+- They are typically also part of loop invariants and they help describe how much work has been done. In fact, you can hardly analyze or describe a loop without reference to the loop control variables.
+
+2. **State-Carrying Variables**: stateful variables that accumulate or evolve state of the loop, and often embody intermediate product of the loop.
+- They represent state being built, accumulated, or transformed across iterations.
+- They are directly tied to loop invariants, which describe their meaning per iteration.
+- They have values that hold semantic meaning tied to the loop’s purpose, even though they don’t necessarily affect loop flow.
+- They may or may not appear in loop variants.
+
+3. **Incidental Variables**: all other stateful variables. Although they also have many kinds, we don't divide them further.
+- They are modified inside the loop but neither drive the loop's control logic nor carry meaningful loop invariants.
+- They mainly support secondary purposes such as side effects or auxiliary operations that are unrelated to loop control or algorithmic correctness. 
+- They include any variables defined inside the loop, and these variables are short-lived and temporary as they don't carry information across iterations.
+- They include any variables that serve external purposes, such as logging, I/O, metrics collection etc. They are part of the loop's side effects but not tied to its main purpose.
+- They include any variables that are part of the legacy or misplaced code. They could be never used and don't affect anything, serving no functional purposes. 
+
 - The above classification of variables are based on their access pattern and role in control or logic.
 - It's possible for an variable to be both Loop Control Variable and State-Carrying Variable, and this often means it's part of both the variants and invariants.
 - For Stateful Variables, we say a variable could be modified when there is at least one statement in the loop that modifies its value. In the actual execution, its value may stay unchanged due to branching, but as long as there is possibility it could be modified, we don't consider it a constant.
