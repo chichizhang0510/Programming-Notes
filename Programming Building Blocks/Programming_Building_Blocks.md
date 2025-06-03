@@ -1045,7 +1045,7 @@ In addition, we can also mention the definition of variables used in the loop, s
 
 To write a correct loop, all these elements should be considered. In the following sections, we will delve into each of them in detail. We will focus on single-threaded, algorithmic loops (typical for competitive programming or algorithm exercises).
 
-I personally think **Loop Invariant** is the most valuable and important thing about a loop that helps programmer implement and reason about the loop. In a coding interview, if you cannot explain the loop invariant of a particular loop, the interviewer may think you don't understand your code and cannot prove its correctness.
+**Loop Invariant** is arguably the most valuable and important thing about a loop that helps programmer implement and reason about the loop. In a coding interview, if you cannot explain the loop invariant of a particular loop, the interviewer may think you don't understand your code and cannot prove its correctness.
 
 Asking yourself the following questions and perhaps documenting them in the code comment would be helpful:
 - What's the loop invariant? Why it's important to maintain it?
@@ -1168,7 +1168,7 @@ for (int i = 0; i < nums.length; i++)
 
 **Notes**:
 - No loop should run forever, so use loop conditions that can guarantee the termination. 
-    - Notice that there are practical long running programs that are supposed to have no exit condition and run forever until the program is shut down from outside. But those are outside our scope, as our discussion is confine to algorithmic programs.
+    - Notice that there are practical long running programs that are supposed to have no exit condition and run forever until the program is shut down from outside. But those are outside our scope, as our discussion is confined to algorithmic programs.
 - Loop conditions include when the loop should continue as well as when the loop should terminate. To avoid confusion:
     - **Continuation Condition**: We’ll call the condition in the loop’s structure (while/do-while or the second part of a for loop) the **continuation condition**, for example `while (condition) { statements }`.
     - **Exit Condition**: We’ll call any condition inside the loop that causes an early exit an **exit condition**, for example `if (condition) break;`. 
@@ -1342,7 +1342,7 @@ if (nums == null || nums.length == 0) return -1; // handle empty array explicitl
     - Indeed, the variables accessed in the loop body can be divided into several categories and we will discuss that later. The ones that are directly relevant to loop variant are called **loop control variables**.
 - Although we typically assume a loop should always terminate due to some loop condition, there are exceptions especially when we consider multi-threading and event loop programs. 
     - For example, in a producer-consumer pattern multi-threaded program, the consumer could be long-running until the system stops it. 
-- If you take a look at the wikipedia page of loop variant, you will see some rather formal academic definitions, so here I try to somehow simplify it but still keep the essence.
+- If you take a look at the wikipedia page of loop variant, you will see some rather formal academic definitions, so here we try to somehow simplify it but still keep the essence.
 - Both loop variant and loop invariant are connected with meaning and definition of variables accessed in the loop. 
     - There are variables accessed in the loop that are not considered as loop control variables and thus have little to do with loop variant, so it's normal for you to feel confused. 
     - We will discuss their distinction and more about loop variant, loop control variables in the section of loop invariant.
@@ -2191,7 +2191,7 @@ With all the outer loop elements defined, we can proceed to implement the loop b
     - As for the meaning of $j$, we again have many choices.
     - Using $j$ as the counter of iterations works. You can definitely count the number of iterations, then let $j$ represent the `#0` iteration, `#1` iteration and so on. You could also use the reverse order of counting, from $n-i$ to $1$.
     - You could also directly use the loop variant. The number of elements in the subarray is $n-i$, so there are $n-i-1$ pairs in total.
-    - Similar to the outer loop analysis, I prefer what is most obvious in the image: *the indices of the pairs of elements to compare*. The two indices in a pairs makes not much difference, but I prefer to choose $j$ as the index of the element with larger index.
+    - Similar to the outer loop analysis, *the indices of the pairs of elements to compare* is most obvious in the image. The two indices in a pairs makes not much difference, so we can choose $j$ as the index of the element with larger index.
     - By doing so, for each iteration the pair we examine is $(a[j-1],a[j])$.
 - Once the iteration direction and the meaning of $j$ are settled, most of the other elements are also clear.
 
@@ -2809,7 +2809,7 @@ The above tow lines are not identical:
 - `a[j + 1] = a[j--]` is equivalent to the original code.
 - `a[j-- + 1] = a[j]` is not equivalent to the original code.
 
-If you are confused, you can refer to the previous section of *Operand Evaluation Order*. But even if one of them is equivalent to the original code, it's not recommended to use it. Yes we have one line of code less, but the readability is significantly reduced and the chances of bug increase. **Avoid** such micro-optimizations in your loop implementation.
+If you are confused, you can refer to the previous section of *Expression Evaluation Order*. But even if one of them is equivalent to the original code, it's not recommended to use it. Yes we have one line of code less, but the readability is significantly reduced and the chances of bug increase. **Avoid** such micro-optimizations in your loop implementation.
 
 ##### Adjacent Swapping
 
@@ -3447,7 +3447,7 @@ Every Computer Science student is expected to be familiar with the following con
 		- [45. Jump Game II](https://leetcode.com/problems/jump-game-ii/)
 		- [435. Non-overlapping Intervals](https://leetcode.com/problems/non-overlapping-intervals/)
 
-It's highly recommended that you understand and implement every one of the above algorithms or data structures. They incorporate the most classic algorithm design principles and are good programming practice. There are tons of material talking about these classic topic, and I personally used [Introduction to Algorithms](https://www.amazon.com/Introduction-Algorithms-3rd-MIT-Press/dp/0262033844 "https://www.amazon.com/introduction-algorithms-3rd-mit-press/dp/0262033844") and [Algorithms 4ed](https://www.amazon.com/Algorithms-4th-Robert-Sedgewick/dp/032157351X "https://www.amazon.com/algorithms-4th-robert-sedgewick/dp/032157351x"). 
+It's highly recommended that you understand and implement every one of the above algorithms or data structures. They incorporate the most classic algorithm design principles and are good programming practice. There are tons of material talking about these classic topic, [Introduction to Algorithms](https://www.amazon.com/Introduction-Algorithms-3rd-MIT-Press/dp/0262033844 "https://www.amazon.com/introduction-algorithms-3rd-mit-press/dp/0262033844") and [Algorithms 4ed](https://www.amazon.com/Algorithms-4th-Robert-Sedgewick/dp/032157351X "https://www.amazon.com/algorithms-4th-robert-sedgewick/dp/032157351x") are recommended. 
 
 The following are some advanced topics that are less frequently seen in solving LeetCode problems, but some are still very useful, e.g. Binary Indexed Tree.
 
