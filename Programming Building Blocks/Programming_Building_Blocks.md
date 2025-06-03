@@ -1162,7 +1162,7 @@ for (int i = 0; i < nums.length; i++)
 
 **Definition**: The boolean expressions determining whether to continue or terminate the loop.
 
-**Relation**: Provides inferred knowledge after the loop terminates as we know loop condition doesn't hold or one of the exit condition is true. It's also closely connected to the loop variants because it involves the loop control variable which moves toward termination.
+**Relation**: Provides inferred knowledge after the loop terminates as we know continuation condition doesn't hold or one of the exit condition is true. It's also closely connected to the loop variants because it involves the loop control variable which moves toward termination.
 
 **Importance**: Controls execution flow, ensures termination, prevents infinite loops and contributes to loop goal.
 
@@ -1170,8 +1170,8 @@ for (int i = 0; i < nums.length; i++)
 - No loop should run forever, so use loop conditions that can guarantee the termination. 
     - Notice that there are practical long running programs that are supposed to have no exit condition and run forever until the program is shut down from outside. But those are outside our scope, as our discussion is confine to algorithmic programs.
 - Loop conditions include when the loop should continue as well as when the loop should terminate. To avoid confusion:
-    - We’ll call the condition in the loop’s structure (while/do-while or the second part of a for loop) the **continuation condition**, for example `while (condition) { statements }`.
-    - We’ll call any condition inside the loop that causes an early exit an **exit condition**, for example `if (condition) break;`. 
+    - **Continuation Condition**: We’ll call the condition in the loop’s structure (while/do-while or the second part of a for loop) the **continuation condition**, for example `while (condition) { statements }`.
+    - **Exit Condition**: We’ll call any condition inside the loop that causes an early exit an **exit condition**, for example `if (condition) break;`. 
     - In our discussion, "loop condition" can broadly mean both. We'll explicitly mention "exit condition" when we’re talking about something like a `break` or `return` inside the loop.
     - Thus the placement of loop condition is flexible, as it could be at the beginning of each iteration, or inside the loop body.
 - Always ensure loop conditions are clear and capable of eventually terminating the loop. Due to the `if-else` structure, sometimes the exit condition is not explicitly defined. Make the conditions explicit or implicit according to your needs.
@@ -1186,7 +1186,7 @@ for (int i = 0; i < nums.length; i++)
 
 ```java
 int left = 0, right = nums.length - 1;
-while (left <= right) { // Loop condition for binary search. It continues if the search space isn't empty
+while (left <= right) { // Continuation condition for binary search. It continues if the search space isn't empty
     int mid = left + (right - left) / 2;
     if (nums[mid] < target) left = mid + 1;
     else if (nums[mid] > target)right = mid - 1;
@@ -1678,7 +1678,7 @@ For the variables that are accessed in the loop, there are two categories.
 - They include any variables that serve external purposes, such as logging, I/O, metrics collection etc. They are part of the loop's side effects but not tied to its main purpose.
 - They include any variables that are part of the legacy or misplaced code. They could be never used and don't affect anything, serving no functional purposes. 
 
-- The above classification of variables are based on their access pattern and role in control or logic.
+The above classification of variables are based on their access pattern and role in control or logic.
 - It's possible for an variable to be both Loop Control Variable and State-Carrying Variable, and this often means it's part of both the variants and invariants.
 - For Stateful Variables, we say a variable could be modified when there is at least one statement in the loop that modifies its value. In the actual execution, its value may stay unchanged due to branching, but as long as there is possibility it could be modified, we don't consider it a constant.
 
@@ -1973,216 +1973,239 @@ return -1;
 
 ### From Analysis to Implementation
 
-- Loop analysis helps you read and understand looping code, and it's the prerequisite of good loop implementation: you can only learn how to write good looping code after you can read them well and reason about them in a methodical way. 
-- You will find loop implementation strongly connected to the techniques introduced in loop analysis, and the main work we need to do to implement a loop is to figure out the loop elements correctly.
-- In this section, we will try to find a way to methodically implement looping code, with clear code structure and meaningful documentation.
-- Typically when you solve a coding problem, you need to design the algorithm and then implement it. But since this section focuses on implementation, the high-level design will be provided for each algorithm, and you are encouraged to implement the algorithm according to that design first. After you finish the code, you can go on to read the rest of each section.
-- Depending on the coding problems, some are harder to design and others are harder to implement. This section is mainly about how to implement the algorithms methodically, and the premise is that we already have the high-level idea about the algorithm, which itself could be harder in solving practical problems.
-- There will be several case studies. I will go into verbose details in the first case study, implementing the bubble sort, and be concise for later ones.
+- Loop analysis is essential for reading and understanding looping code, and it serves as the foundation for effective loop implementation. In fact, you can only learn to write robust loop constructs after you can methodically read and reason about them.
+- Loop implementation is closely tied to the techniques introduced in loop analysis. The primary work in implementing a loop is correctly determining each of the loop's elements.
+- In this section, we will explore a systematic approach to implement looping code methodically, focusing on clear code structure and meaningful documentation.
+- Typically, when solving a coding problem you must design an algorithm and then implement it. However, because this section emphasizes implementation, we provide the high-level design for each algorithm. You are encouraged to implement the algorithm using that design on your own first, and then continue reading for the detailed explanation.
+- Depending on the problem, some algorithms are harder to design while others are harder to implement. This section concentrates on methodical implementation, assuming we already have the high-level algorithm idea in place, which itself can be the more challenging part in practice.
+- We will present several case studies. The first case study of Bubble Sort will be discussed in verbose detail, and later case studies will be explained more concisely.
 
 ### Bubble Sort
 
 #### High-Level Design
 
-Sorting algorithms are the most classic algorithms. Bubble Sort is one of the easiest sorting algorithms, but it serves good learning purposes. For the following discussions, suppose we want to sort an array in non-decreasing order.
+Sorting algorithms are among the most classic in computer science. **Bubble Sort** is one of the simplest sorting algorithms and serves as a good learning example. For our discussion, assume we need to sort an array in non-decreasing order.
 
-**This section is not a full treatment** about sorting algorithms or even Insertion Sort specifically, we only focus on how to methodically implement it.
+*Note:* This section is not a comprehensive treatment of sorting algorithms or even Bubble Sort specifically. We are only focusing on how to methodically implement it.
 
 **High-Level Design Perspective**:
-- Bubble Sort is a simple comparison-based sorting algorithm that repeatedly iterates through the array and compares adjacent pairs of elements, swapping them if they are in the wrong order (i.e., the left is greater than the right), until the list is sorted. 
-- **High-Level Procedures** that break this idea into concrete steps:
-    - Start from the end of the array.
-    - Compare each pair of adjacent elements.
-    - If the left element is greater than the right one, swap them.
-    - Repeat this process until you reach the end of the array, leaving the smallest unsorted element at the far left.
-    - On the next pass, repeat the process again, but ignore all elements to the left of the last smallest element inclusively.
-    - Continue until no more passes are needed (i.e., the array is sorted).
-- This version of Bubble Sort works by selecting the minimum element. Conversely we can also select the maximum element, and the whole process is just a mirror version of the above steps.
+- Bubble Sort is a simple comparison-based sorting algorithm that repeatedly traverses the array, comparing adjacent elements and swapping them if they are out of order (i.e., the left element is greater than the right). This process continues until the array is fully sorted.
+
+**High-Level Procedures**: Break the sorting process into the following steps
+- Start from the end of the array.
+- Compare each pair of adjacent elements.
+- If the left element is greater than the right one, swap them.
+- Repeat this process until you reach the end of the array, leaving the smallest unsorted element at the far left.
+- On the next pass, repeat the process again, but ignore all elements to the left of the last smallest element inclusively.
+- Continue until no more passes are needed, that is when the array is sorted.
+
+This version of Bubble Sort selects the minimum element on each pass. Conversely we can also select the maximum element, and the whole process just mirrors the above steps.
 
 <img src="img\bubblesort_visualization.png" alt="bubblesort_visualization.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
 
-The above is a graphical representation of the procedure. 
-- The grey portion doesn't participate in the later process.
-- The graphical representation is a tool to help us understand the flow of the algorithm when writing the code. 
-- For simpler problems, seasoned programmers plot the graph in their mind, quickly identify all the key information and finish the code swiftly. I believe with sufficient practice, you can do this too.
+**Algorithm Visualization**
+- The image above provides a visual representation of this procedure.
+- The grey portion doesn't participate in the later passes.
+- Such visualizations can help us understand the algorithm's flow when writing code. 
+- In fact, experienced programmers often visualize these steps mentally for simpler problems, quickly pinpointing key details and coding the solution. With sufficient practice, you will be able to do the same.
 
-Before you go on reading, please **implement Bubble Sort by yourself** according to the steps of the algorithm. In addition, also annotate your loop control structure and explain what invariants you’re trying to maintain. We will later go into mid-level design and then implement the algorithm based on these steps as well.
+Before continuing, please **implement Bubble Sort on your own** following the steps outlined above. As you do so, annotate your loop control structure and specify what invariants you're trying to maintain. We will later go into mid-level design and then implement the algorithm based on these steps as well.
 
-Selection Sort is another sorting algorithm that is very similar to Bubble Sort. Please implement your version of Selection Sort and analyze its elements after you finish reading about Bubble Sort.
+**Selection Sort** is another sorting algorithm very similar to Bubble Sort. After finishing the Bubble Sort case study, you are encouraged to implement Selection Sort yourself and analyze its loop elements to reinforce these concepts.
 
 #### Mid-Level Design
 
-Compared to high-level design, which describes the conceptual flow of the algorithms, mid-level design translates the conceptual flow into program-level procedures without discussing the actual code, which is what low-level implementation is about.
+Compared to high-level design, which describes the algorithm's conceptual flow, mid-level design translates that concept into program-level procedures without writing actual code, which is the low-level implementation.
 
 **Applying Repetition**:
 - Comparing the adjacent elements in the array repeatedly strongly suggests using loop/iteration. 
-- According to the description of the steps, the comparison of adjacent elements will be repeated. But even if we finish comparing all adjacent pairs of elements, we only find the smallest element and place it on the leftmost position, which is still far from sorting the whole array. 
-- But if we repeat the above process(repetition of repetition), the sorted part of the array grows and the unsorted part of the array shrinks, and eventually the sorted part will be the whole array and the unsorted part will be an empty array. 
-- In the process of repetition, we make sure each time we modify the sorted subarray, we only append one element to its end without disrupting the already sorted prefix, an element that is no less than the maximum of the sorted subarray, and that element is also the minimum in the unsorted array. This makes sure all elements in the unsorted subarray are no less than those in the sorted subarray.
-- This analysis suggests we need **two layers of nested loop**: the first repetition is the inner loop and the second is the outer loop.
-- *Side Note:* when we say an array or subarray is unsorted, it means that we are uncertain about its sortedness. Although it could already sorted, but without iterating through the element we cannot assert its sortedness.
+- According the step-by-step description, adjacent comparisons are performed repeatedly. Yet, even after we finish comparing all adjacent pairs of elements, which is one full pass, we only move the smallest element to the leftmost position, which is still far from sorting the entire array. 
+- However, by repeating this entire process (a repetition of repetition), the sorted portion of the array grows while the unsorted portion shrinks. Eventually, the sorted portion becomes the entire array and the unsorted portion is empty.
+- During each repetition, we make sure each time we extend the sorted subarray, only one element will be appended to the end without disrupting the already sorted prefix. That element is the minimum of the unsorted array, but is also no less than the maximum of the sorted subarray. This guarantees all remaining elements in the unsorted subarray are still no less than all elements in the sorted subarray. That is `MIN(unsorted subarray) >= MAX(sorted subarray)`.
+- This analysis suggests that **two layers of loops** are required: the first repetition is the inner loop and the second is the outer loop.
+- *Note:* when describing an array or subarray as "unsorted" here means we are not sure if it is sorted. It might already be sorted, but we cannot be certain without examining its elements.
 
 **Mid-Level Design** of Bubble Sort:
-- Bubble Sort partitions the entire array into two sections, a sorted subarray followed by an unsorted subarray, and it iteratively increase the size of the former while decreasing that of latter. It has two layers of loops.
-- In the outer loop, it handles the unsorted subarray and the size of that subarray decrement by 1 for each iteration. Accordingly, the size of the sorted subarray increment by 1. 
-- In the inner loop, it iterates through all adjacent pairs of elements in the unsorted subarray and exchange them if they are in the wrong order. After the loop terminates, the smallest unsorted element will be in its correct final position, which is like "bubbled" to the end like a rising bubble in water.
+- Bubble Sort partitions the entire array into two sections, a sorted subarray followed by an unsorted subarray. With each iteration of the algorithm, the sorted subarray increases in size by 1 while the unsorted subarray decreases by 1. This involves two layers of loops.
+- In the outer loop, it handles the unsorted subarray, shrinking its size by 1 each iteration, and accordingly, growing the size of the sorted subarray by 1.
+- In the inner loop, it iterates through the unsorted subarray and compare each adjacent pair, swapping them if they are in the wrong order. After the loop terminates, the smallest element of the unsorted subarray will be in its correct final position, which is like "bubbled" to the front of that subarray.
 
 ```java
-// Second Approach
 LoopForEachUnsortedSubarray() {
     LoopForPairExchange();
 }
 ```
 
-This is the conceptual design of the algorithm. Although it captures the essence of the algorithm, we still need to translate it into actual code by declaring variables, using statement sequence, branching and looping to realize the conceptual idea. Let's go through this example to see how we can methodically implement two layers of loops.
+The pseudocode above captures the conceptual design. We still need to translate it into actual code by declaring variables, using statement sequence, branching and looping to realize this idea. Let's go through this example to see how we can methodically implement two layers of loops.
 
 #### Outer Loop Implementation
 
 **Primitive Analysis**:
-- For the outer loop, it's obvious that the Loop Goal is identical to the intent of the whole method, that is to sort the input array $a[]$ in non-decreasing order. 
-- The Loop Premise is also the precondition of the method: the array $a[]$ cannot be null.
-- Indeed, you could identify that an array of 0 or 1 element doesn't need any operations to make it sorted. They are obviously edge cases for our algorithm, and you may be tempted to write code like the following to take the shortcut to early return:
+- For the outer loop, the **Loop Goal** is identical to the intent of the entire method, that is to sort the input array $a[]$ in non-decreasing order. 
+- The **Loop Premise** is the same as the method's precondition: the array $a[]$ is not null.
+- Obviously, an array of length 0 or 1 is already sorted and requires no operations. These are edge cases you might handle with a quick check and return. For example:
 
 ```java
 void bubbleSort(int[] a) {
     if (a == null || a.length <= 1) return;
-    // rest of the original code
+    // rest of sorting code
 }
 ```
 
-- In an actual interview, you should explicitly ask the interviewer whether the input array could be null, but here for the sake of brevity, we assume it's not the method's responsibility to handle null or invalid input, instead the precondition of the method states that the input array can not be null, and it's the caller's responsibility to honor that contract. So we don't consider it as an edge case for now.
-- Here the code to handle the edge case `a.length <= 1` is simple, but in general it may takes you several lines of code to handle the edge cases. My recommendation : it's ok to recognize the edge cases before or after you finish the code for the general logic, but **do not rush to implement code to specifically handle edge cases**. The reason is simple: with minor or no tweaks, the code for the general logic can often handle edge cases gracefully.
+- In an actual interview, you should explicitly ask the interviewer whether whether `null` inputs are possible. For brevity here, we assume it's not the method's responsibility to handle null or invalid input, instead the precondition of the method states that the input array can not be null, and it's the caller's responsibility to honor that contract. So we don't consider this edge case in our implementation.
+- The check for `a.length <= 1` is simple in this context. In general cases, handling edge cases might take a few extra lines of code. My recommendation : it's acceptable to recognize the edge cases before or after you finish the main logic, but **do not rush to implement code that specifically handle edge cases too early**. The reason is simple: with minor or no tweaks, the code for general logic can often handle edge cases gracefully.
 
-In the following discussion, we will use $n$ to replace $a.length$ for brevity.
+In the following discussion, let's use $n$ to denote $a.length$ for brevity.
 
 <img src="img\bubblesort_outer_loop.png" alt="bubblesort_outer_loop.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
 
 **Implementation Design**
 - The above image is a graphical visualization of what the outer loop does.
-- We can see how how the State-Carry Variable, the input array $a[]$ is modified from iteration to iteration. Suppose $n$ is its length.
-- The number of iterations is fixed w.r.t the length of the input array: the unsorted part shrinks from the whole array to empty while the sorted part goes through an opposite process. 
-- This leads to a natural conclusion that we can use a `for` loop as the outer loop, where the number of iteration required is known and clear. We can use $i$ as the variable name of the Loop Control Variable in this case.
+- We can see how how the State-Carry Variable $a[]$ changes from iteration to iteration.
+- The number of iterations is predetermined by $n$: the unsorted subarray shrinks from the whole array to empty while the sorted subarray goes through an opposite process. 
+- This leads to a natural conclusion that we can use a `for` loop as the outer loop, where the number of iteration required is known. We can use $i$ as the Loop Control Variable in this case.
 
 **Definition of the Loop Control Variable**:
-- Next we need to determine the meaning/definition of $i$ and its range. 
-- This is where things get interesting because we have multiple choices here and although all of them can lead to correct implementation, some are more difficult than the others. 
+- Next we determine the meaning/definition of $i$ and its range of values. 
+- This is where things get interesting because we have multiple choices here and although all of them can lead to correct implementation, some are more convenient than others. 
+
 - **Counting-Based Definition**:
-    - You may think that we can count the number of iteration.
-    - Suppose the number of iterations is $X$, and in the `for` loop header we can let $i$ go from $1$ to $X$, or equivalently from $0$ to $X-1$, from $X$ to $1$, and from $X-1$ to $0$. You can choose one based on your coding habit and preference. But what is the value of $X$ exactly? 
-    - Again, let's go back to the graph. Take a look at the size of the unsorted sub-array(or the sorted subarray because they complement each other). 
-    - Initially its size is $n$, for each iteration it decrement by $1$, and eventually it's $0$, which is the case when the loop terminate, so the last valid value should be $1$. From $n$ to $1$, that is $n$ iterations, so $X=n$. But if you take a closer look, we don't have to find the minimum element or exchange any pair of elements when the sub-array has only 1 element, so it's ok to leave the last valid value to be $2$.
-    - It' totally normal that you modify your code, for example the `for` loop header, back and forth when writing the loop to change the initial value of the loop index $i$ or its final value. Because before you fully implement the loop body, you only have an abstract overview of what you algorithm does and how it does the job. After you finish it, you can use the techniques of loop analysis to see if there are mistakes and correct them accordingly. That being said, if you are uncertain about the loop range, like the start and end valid value for $i$, leave it there and go on to finish the loop body first and then come back to decide the proper values.
-    - However, most of the time, counting the number of iterations and use it as the loop range is not the best choice. It may not be obvious in this case, but in a lot of algorithms, it would make your code harder to write, mainly because it doesn't connect closely enough to the loop variant, what we need to do in the loop body and how the state of the loop evolves.
+    - You may think that we can count the number of iteration and use $i$ as an iteration counter. 
+    - Suppose the number of iterations is $X$, and in the `for` loop header we can let $i$ go from $1$ to $X$, or equivalently from $0$ to $X-1$, from $X$ to $1$, and from $X-1$ to $0$, etc. You can choose one based on your coding habit and preference. But what is $X$ exactly?
+    - Take a look at the graph, and note the size of the unsorted sub-array over time (or the sorted subarray because they complement each other). 
+    - Initially it's $n$, for each iteration it decreases by $1$, and eventually it's $0$ when the loop terminates. So the last valid value should be $1$. From $n$ down to $1$ gives $n$ iterations, so $X=n$. 
+        - However, if you take a closer look, we don't need to perform any comparisons or swaps when the subarray has only 1 element, so it's ok to leave the last valid value to be $2$, which is effectively using $X=n-1$ instead.
+    -  In practice, it’s normal to adjust the loop range after writing the loop body. 
+        - For example, in the `for` loop header, you may go back and forth when writing the loop to change the initial value of $i$ or its final value. 
+        - Because before you finish the loop body, you only have an abstract overview of what the algorithm does without much concrete details. After you finish it, you can use the techniques of loop analysis to see if there are mistakes and correct them accordingly. - That being said, if you are uncertain about the exact loop range, like the start and end value for $i$, you can proceed to finish the loop body first and then revisit the loop bounds to decide the proper values.
+    - However, most of the time, counting the number of iterations and use it as the loop range is not the best choice. 
+        - It may not be obvious in this case, but in a lot of algorithms, it would make your code harder to read and write.
+        - Because it doesn't closely reflect the evolving **loop variant** or the work done in the loop body.
 - **Variant-Based Definition**:
-    - Before we go on, take a look at the image again and answer the question: what is the loop variant?
-    - It's the size of the unsorted subarray, or equivalently the size of the sorted subarray, but since they complement each other, either of them would work. And this prompts us to consider defining $i$ in terms of the loop variant.
-    - You could define $i$ to be the size of the unsorted subarray, so initially it's $n$, and in the end(after the loop terminates) it's $0$. So the loop range could be from $n$ to $1$. But in fact as we have analyzed, in the last iteration we only need to handle an unsorted subarray of 2 elements, so we can also let $i$ go from $n$ to $2$.
-    - In this way, the loop control variable is equal to the loop variant: they are identical. As you will see, in the inner loop, we need to examine all pairs of adjacent elements in the unsorted subarray, which is delimited by its start and end indices. Its end index is fixed as $n-1$, and what is the start index for a particular $i$? 
-    - You need to use equation to determine the value of the start index. Suppose it's $s$, then $n-1-s+1$, which is the length/size of the unsorted subarray, should be equal to $i$, then we have $s=n-i$. So the start index is $n-i$, which is acceptable and not too complicated.
-    - Using this definition would work, but in hindsight we have a better choice. Because loop control variable is not only used in loop variant to determine the number of iterations, it's also used in the loop body to delimit the subarray range that we need to perform work on in the inner loop. We need to strike a balance between these two different requirements, and notice that loop variant is more for correctness analysis, so we can put implementation convenience first when actually writing the code.
+    - Take a look at the image and think: what is the loop variant?
+    - It's the size of the unsorted subarray, or equivalently the size of the sorted subarray, but since they complement each other, either would work. This prompts us to consider defining $i$ in terms of the loop variant, the property that changes each iteration.
+    - You could define $i$ to be the size of the unsorted subarray. 
+        - Initially it's $n$, and after the loop terminates it's $0$. So the loop range could be from $n$ to $1$. 
+        - But in fact as we have analyzed, in the last iteration we only need to handle an unsorted subarray of 2 elements, so we can also let $i$ go from $n$ to $2$.
+    - In this scheme, the loop control variable directly tracks the loop variant: they are identical. 
+        - As you will see, in the inner loop, we need to examine all pairs of adjacent elements in the unsorted subarray, which is delimited by the start and end indices. Its end index is fixed as $n-1$, and what is the start index for a particular $i$? 
+        - Defining $i$ strictly as the unsorted subarray size would require translating that into array indices. We need to use equation to determine the value of the start index. 
+        - Suppose the start index is $s$, then $n-1-s+1$, which is the length/size of the unsorted subarray, should be equal to $i$, then we have $s=n-i$. So the start index is $n-i$. It’s doable but not as straightforward.
+    - Using this definition would work, but in hindsight we have a better choice. 
+        - Because loop control variable is not only used in loop variant to determine the number of iterations, it's also used in the loop body to delimit the subarray range that we need to perform work on in the inner loop, so we should consider implementation convenience too. 
+        - We need to strike a balance between these two different requirements. Notice that loop variant is more for correctness analysis, so we can put implementation convenience first when writing the code.
 - **Index-Based Definition**:
-    - My personal pick is the start index of the unsorted subarray.
-    - If you take a look at the image, it's most obvious changing element across iteration. The end index of the sorted array is also ok, but there is an offset of 1.
-    - Although not being identical to the loop variant, they are directly connected: as $i$ moves toward the end of the array, the unsorted subarray shrinks and its size decreases.
-    - In addition, it makes the inner loop easier to write, because inside the outer loop, the range of the unsorted subarray is fixed as $a[i...n-1]$, which is simple and clear and no more composite expression like $n-i$ is required.
-    - Although using the number of iterations or the size of the unsorted subarray also works (you can always equations to solve for the start index), they are not as straightforward as directly using the start index. And not being straightforward means it's going to take longer time for the reader to understand and feel convinced, which also means more documentation to explain your code. You may worry about questions like "is it $n-i$ or $n-i-1$?".
-- By now we have seen three different definitions of $i$:
-    - **Index-Based**: `i = start index`
-    - **Variant-Based**: `i = size of unsorted`
+    - A more intuitive choice is to let $i$ be the start index of the unsorted subarray in each iteration, which is my personal pick.
+    - In the visualization, this is the clearest thing changing each time: on each outer loop iteration, the unsorted section starts one position further to the right. Using the end index of the sorted section would be similar but off by one.
+    - This definition isn't identical to the loop variant but they are directly connected: as $i$ increases and moves toward the end of the array, the size of the unsorted subarray decreases correspondingly.
+    - It also simplifies the inner loop, because inside the outer loop, the unsorted subarray is fixed as $a[i...n-1]$, which is simple and clear. We can write the inner loop bounds clearly without needing to compute indices like $n-i$, which reduces the chance of off-by-one errors.
+    - Although using Counting-Based or Variant-Based definitions also works, as you can always set up equations to solve for the start index, they are not as straightforward as directly using the start index. 
+    - It's going to take longer time for the reader to understand and be convinced, and you also need more documentation to explain the code. You may be worrying about questions like "is it $n-i$ or $n-i-1$?".
+- By now we've considered three definitions of  $i$:
+    - **Index-Based**: `i = start index of unsorted subarray`
+    - **Variant-Based**: `i = size of unsorted subarray`
     - **Counting-Based**: `i = iteration count`
-- The choices of definitions of the loop control variables vary from algorithm to algorithm, and in other algorithms we may have a different set of choices. For example, in binary search, the number of iterations depends on the input array, which is unknown to the programmer when writing the code, so Counting-Based definition is not workable at all. 
-- Index-Based definition is a subset of Range-Based definition, and it's often the most intuitive and convenient choice when implementing a loop. But after all, it's a matter of personal preference.
+- The choices of the loop control variables vary from algorithm to algorithm, and different algorithms may favor different choices. 
+    - For example, in binary search, the number of iterations depends on the input array, which is unknown to the programmer when writing the code, so Counting-Based definition is not workable at all. 
+- Index-Based definition is a subset of Range-Based definition, and in practice it's often the most intuitive and convenient choice when implementing a loop, though ultimately it can be a matter of personal preference.
 
-Coding is often a **non-linear mind process**, unlike in many other tasks where you can go top-down all the way without looking back. 
-- Picking the start index of the unsorted subarray requires you to know how the loop body will use it, and in this particular case, how the inner loop works. 
+Coding is often a **non-linear thought process**. Unlike some tasks, you may not simply go top-down without revisiting earlier decisions.
+- For instance, choosing $i$ to be the start index of the unsorted subarray requires thinking ahead about how the inner loop operates and uses $a[i]$.
 - You have to think about the inner loop when implementing the outer loop because they are interlocked and correlated.
-- So in general, an overview of the entire loop before you starting writing any code could really help. And if you can't see things clear from the start, it's absolutely ok to think as you code, and go back and forth to modify you code to make the whole loop coherent.
+- So in general, an overview of the entire loop structure before you coding is helpful. And if you can't see things clear from the start, it's absolutely fine to write what you can, and go back and forth to adjust you code to make the whole structure coherent.
 
-Now we have the framework of the outer loop:
+Now, using an index-based definition for Bubble Sort’s outer loop, we have the framework of the outer loop:
 ```java
 for (int i = 0; i < a.length; i++) {
     // inner loop
 }
 ```
 
-Before we go on, let's summarize what elements of loop we have figured out so far for the outer loop:
+**Loop Elements Analysis**. Let's summarize the the outer loop element we have determined so far:
 - **Loop Goal**: sort $a[0...n-1]$ in non-decreasing order.
 - **Loop Premise**: $a[]$ is not `null`.
-- **Loop Initialization**: initialize $i$ to $0$ in the `for` loop header.
+- **Loop Initialization**: initialize $i=0$ in the `for` loop header.
 - **Loop Condition**: the loop continues as long as the unsorted subarray is not empty. 
-    - Combined with loop termination and edge case analysis, we see that $i<n$ is a proper expression for loop condition.
+    - Combined with loop termination and edge case analysis, $i<n$ is a proper expression for loop condition.
 - **Loop Termination**: we terminate the loop when unsorted subarray is empty. 
-    - So after the loop terminates $i=n$, and the whole array is sorted.
+    - This is when $i=n$, and the entire array is sorted.
 - **Edge Cases**: $n=0$
     - Using the loop condition we picked, no iteration is required and correctness is guaranteed. No additional code is required.
 - **Loop Variant**: the size of the unsorted subarray, which is $n-i$. 
-    - We decrease it by 1 for each iteration, so `i++` is how we update the loop control variable and make sure the loop will terminate.
+    - We decrease it by $1$ each iteration, so `i++` is how we update the loop control variable, ensuring the loop will terminate.
 - **Loop Control Variable**: $i$ is the loop control variable acting as the partition boundary.
     - It's the start index of the unsorted subarray that we handle in `#i` iteration, while the end index is always $n-1$. 
-    - So at the star of an iteration, the sorted subarray is $a[0...i-1]$, while the unsorted subarray is $a[i...n-1]$.
-    - Its initial value is 0, which corresponds to the entire array, and we increment it by $1$ for each iteration. 
-    - The loop continues until $i$ reaches $n$, ensuring that the value of $i$ covers the range of $[0...n-1]$, making sure each iteration we move only one element from unsorted subarray to sorted subarray.
+    - At the star of an iteration, the sorted subarray is $a[0...i-1]$, while the unsorted subarray is $a[i...n-1]$.
+    - Its initial value is $0$, which corresponds to the entire array, and we increment it by $1$ each iteration. 
+    - The loop continues until $i$ reaches $n$, ensuring that the value of $i$ covers the range of $[0...n-1]$, making sure each iteration we move only one element from unsorted portion to sorted portion.
 
 *Side Note:* using `i < a.length - 1` as the loop condition is also ok. 
-- Doing so reduces one unnecessary iteration when the remaining subarray has only 1 element, but makes the elements a little different and complicated:
-- **Loop Condition**: the loop continues as long as the unsorted subarray has more than one element, combined with loop termination and edge case analysis, we see that $i<n-1$ is a proper expression for loop condition.
+- Doing so reduces one unnecessary iteration when the remaining subarray has only $1$ element, but makes the elements a little different and complicated:
+- **Loop Condition**: the loop continues as long as the unsorted subarray has more than one element, combined with loop termination and edge case analysis, $i<n-1$ is a proper expression for loop condition.
 - **Loop Termination**: we terminate the loop when unsorted subarray has less than one element. 
     - When $n \ge 1$, after the loop terminates $i=n-1$, the whole array should be sorted.
     - When $n=0$, after the loop terminates $i=0$, the array is trivially sorted.
 - **Edge Cases**: $n=0$ or $n=1$, using the loop condition we picked, no iteration is required and correctness is guaranteed. No additional code is required.
 
-Now let's figure out the rest. 
-- Since **Loop Body** is just the code itself, and in our case it's the inner loop because the outer loop is mainly used to delimit the range of the unsorted subarray, so no more analysis is required. 
-- **Iteration Goal** is determined by **Loop Invariant**, so the implementation of the loop body eventually falls upon our understanding and definition of the loop invariant. The loop invariant of BubbleSort is not trivial, and you can pause and take some time to think about it. A hint is to take a look at the image.
-- Loop invariants are about the unchanging truth of the changing component. For each iteration, the sorted subarray grows by 1, but still stays sorted, which is a truth across all iterations and helpful in sorting the entire array, because eventually the sorted subarray covers the entire array. So it's naturally to think that it's part of the loop invariant.
-- But there is more to the loop invariant than simply stating that the sorted subarray grows by one and still sorted. According to the steps of the algorithm, after the inner loop terminates, the first element(the leftmost one) of the unsorted subarray will be the minimum of the unsorted array, which also becomes the last element(the rightmost) of the sorted subarray. For this transformation to work, the following statement must be true: the minimum of the unsorted subarray is no less than the maximum of the sorted subarray.
+Now let's figure out the rest of the outer loop's implementation. 
+- Since **Loop Body** is just the code itself, and in our case it's the inner loop, because the outer loop mainly sets the bounds of the unsorted subarray, so no more breakdown is required. 
+- **Iteration Goal** is determined by **Loop Invariant**, so the implementation of the loop body eventually falls upon our definition and understanding of the loop invariant. 
+- Determining the loop invariant for Bubble Sort is not trivial. Consider pausing to think about it.
+- Recall that loop invariants are about the unchanging truth of the changing components. 
+    - For each iteration, *the sorted subarray grows by one element, but still remains sorted*, which is a truth across all iterations and helpful in sorting the entire array, because eventually the sorted subarray covers the entire array. So it's naturally part of the loop invariant.
+- There is more to the loop invariant than simply stating that the sorted subarray grows by one and still sorted. 
+    - According to the steps of the algorithm, after each inner loop terminates, the first element(the leftmost one) of the unsorted subarray will be the minimum of the unsorted subarray and it also becomes the last element(the rightmost) of the sorted subarray. 
+    - For this transformation to work, the following statement must be true: *the minimum of the unsorted subarray is no less than the maximum of the sorted subarray*.
 
-Now we have both the loop invariant and iteration goal:
-- **Loop Invariant**: at the start of `#i` iteration, $a[0...i-1]$ is sorted in non-decreasing order, and MAX($a[0...i-1]$)<=MIN($a[i...n-1]$)`.
-- **Iteration Goal**: push MIN($a[i...n-1]$) to $a[i]$ by exchanging adjacent elements, making $a[0...i]$ sorted and $a[0...i-1]$ unchanged.
+**Loop Elements Analysis(cont.)**. Now we can state the outer loop invariant and iteration goal clearly:
+- **Loop Invariant**: at the start of `#i` iteration, $a[0...i-1]$ is sorted in non-decreasing order, and MAX($a[0...i-1]$)<=MIN($a[i...n-1]$).
+- **Iteration Goal**: push MIN($a[i...n-1]$) to $a[i]$ by swapping adjacent elements, making $a[0...i]$ sorted and $a[0...i-1]$ unchanged.
 
-By now we have all of the elements of the outer loop ready, and we can go on to implement the loop body, which happens to be equivalent to the inner loop. But before we do that, let's take a look **how loop invariant ensures correctness**. This step is actually not necessary in the implementation of the algorithm, but serves as another example of loop analysis
+With all the outer loop elements defined, we can proceed to implement the loop body, the inner loop. But before we do that, let's briefly verify **how loop invariant ensures correctness**. This step is not required in the implementation of the algorithm, but serves as another good exercise of loop analysis.
 
 **Loop Invariant Analysis**:
-- **Initialization**: initially, $i$ is $0$, so according to the invariant, $a[0...-1]$ is sorted. Notice that this is an empty subarray, so the invariant is trivially true. The first iteration will move the minimum of the whole array to $a[0]$, making MAX($a[0...0]$)<=MIN($a[1...n-1]$) true. 
-- **Maintenance**: for all later iterations, since we only move the minimum of the unsorted subarray to the end of the sorted subarray, and that minimum is still no less than the maximum of the sorted subarray, the invariant is maintained.
-- **Termination**: after the loop terminates, $i=n$, so the sorted subarray is $a[0...n-1]$, which is the entire array, accomplishing the loop goal.
+- **Initialization**: initially before any iteration, $i = 0$. The invariant states $a[0...-1]$ is sorted. Notice that this is an empty subarray, so the invariant is trivially true (we can think of MAX($a[0...-1]$) as $- \infty$). The first iteration will move the minimum of the whole array to $a[0]$, making MAX($a[0...0]$)<=MIN($a[1...n-1]$) true. 
+- **Maintenance**: Assume the invariant holds at the start of `#i` iteration. The inner loop will move the minimum of the unsorted subarray $a[i...n-1]$ to index $i$. This new element is at least as large as all previously sorted elements by our invariant, so at the end of the iteration, MAX($a[0...i]$)<=MIN($a[i+1...n-1]$) and thus the invariant is maintained for the next iteration.
+- **Termination**: when the loop terminates, $i=n$, so the sorted subarray is $a[0...n-1]$, which is the entire array, accomplishing the loop goal.
 
 #### Inner Loop Implementation
 
 <img src="img\bubblesort_inner_loop.png" alt="bubblesort_inner_loop.png" style="width: 40%; height: 40%; display: block; margin-left: auto; margin-right: auto;">
 
 **Implementation Design**
-- The above image is a graphical visualization of what the inner loop does. Exchange of adjacent elements are simple.
-- The inner loop is relatively straightforward, because from the analysis of the outer loop we already know the range of elements we need to examine and the operation we need to perform.
-    - The loop goal of the inner loop is a subset of the iteration goal of the outer loop, without the context of the sorted subarray because the inner loop only handles the unsorted subarray. No particular loop premise, because the subarray won't be empty.
-    - The start and end indices of the unsorted subarray is clear: $a[i...n-1]$, so it's natural for us to a `for` loop and choose a loop control variable, say $j$ to cover all possible pairs of elements and perform the swap/exchange if necessary.
-    - The loop variant is obvious: the remaining number of pairs of adjacent.
+- The above image is a graphical visualization of what the inner loop does: it compares adjacent elements and swaps them if needed.
+- The inner loop is relatively straightforward, because from the outer loop analysis, we already know the range of elements we need to examine($a[i...n-1]$) and the operation we need to perform (adjacent swaps of out-of-order pairs).
+    - The loop goal of the inner loop is essentially a subset of the outer loop's iteration goal, without the context of the sorted subarray because the inner loop doesn't concern itself with elements before index $i$ and it only focuses on the unsorted subarray. 
+    - No particular loop premise, because the subarray won't be empty according to the outer loop conditions.
+    - For the edge cases, the inner loop don't need to worry about empty subarray, but need to handle subarray of only one element.
+    - The start and end indices of the unsorted subarray is clear: $a[i...n-1]$, so it's natural for us to a `for` loop and choose a loop control variable, say $j$, to cover all possible adjacent pairs of elements and perform the swap/exchange if necessary. 
+    - In addition, after the termination of the inner loop, $j$ is useless for the outer loop, because we won't use other exit conditions in the loop, so it would always end up as a fixed-value, which is another reason for us to use `for` loop and declare it in the `initialization` part of the header.
+    - The loop variant is obvious: the remaining number of pairs of adjacent elements in the unsorted subarray. As we move 
 - **Iteration Direction**: 
-    - In this case, the **iteration direction** is more important than the other elements and it determines the choice of meaning of $j$. 
-    - Since we can only exchange adjacent elements, iterating from the end of the subarray to its start can work but not the opposite direction. 
+    - In the inner loop implementation, the **iteration direction** is more important than the other elements and it determines what $j$ represents: from $i$ to $n-1$ or from $n-1$ to $i$.
+    - Since we can only exchange adjacent elements, iterating from the end of the subarray to its start (from $i$ to $n-1$) can work but not the opposite direction.
     - This is because we need to move the minimum element in the subarray to the leftmost position, which could only be done if we iterate from right to left. 
     - This has to do with the loop invariant: if you iterate from left to right, at the `#j` iteration, only $a[j]$ could be exchanged, and all elements in $a[i...j-1]$ won't be touched, so if $a[i]$ is not already the minimum of $a[i...n-1]$, which is totally possible, you can't achieve your loop goal after the loop terminates.
-    - On the other hand, iterating from left to right moves the maximum element in the subarray to the rightmost position. So you are implementing the BubbleSort by selecting the maximum for each iteration, you could use this direction.
+    - *Note:* On the other hand, iterating from left to right moves the maximum element in the subarray to the rightmost position. So you are implementing the BubbleSort by selecting the maximum for each iteration, you need to use this direction.
 - **Definition and Range of $j$**:
     - As for the meaning of $j$, we again have many choices.
-    - The number of iterations work. You can definitely count the number of iterations, then let $j$ represent the `#0` iteration, `#1` iteration and so on. You could also use the reverse order of counter, from $n-i$ to $1$.
+    - Using $j$ as the counter of iterations works. You can definitely count the number of iterations, then let $j$ represent the `#0` iteration, `#1` iteration and so on. You could also use the reverse order of counting, from $n-i$ to $1$.
     - You could also directly use the loop variant. The number of elements in the subarray is $n-i$, so there are $n-i-1$ pairs in total.
-    - Like the analysis in the outer loop, I prefer what is most obvious in the image: the indices of the pairs of elements to inspect. The two indices in a pairs makes not much difference, but I prefer to choose $j$ as the index of the element with larger index.
+    - Similar to the outer loop analysis, I prefer what is most obvious in the image: *the indices of the pairs of elements to compare*. The two indices in a pairs makes not much difference, but I prefer to choose $j$ as the index of the element with larger index.
     - By doing so, for each iteration the pair we examine is $(a[j-1],a[j])$.
-- Once the iteration direction and the meaning of $j$ are settled, most of the other elements are also clear. For the edge cases, the inner loop don't need to worry about empty subarray, but need to handle subarray of only one element.
+- Once the iteration direction and the meaning of $j$ are settled, most of the other elements are also clear.
 
-Now we have figure out the following elements:
-- **Loop Goal**: push MIN($a[i...n-1]$) to $a[i]$ by exchanging adjacent elements.
+**Loop Elements Analysis**. Now we have figure out the following elements:
+- **Loop Goal**: push MIN($a[i...n-1]$) to $a[i]$ by swapping adjacent elements.
 - **Loop Premise**: none.
-- **Loop Initialization**: initialize $j$ to $n-1$ in the `for` loop header.
+- **Loop Initialization**: initialize $j=n-1$ in the `for` loop header.
 - **Loop Condition**: the loop continues as long as there are more pairs to examine. 
     - Combined with loop termination and edge case analysis, we see that $j>i$ is a proper expression for loop condition.
 - **Loop Termination**: we terminate the loop when there are no more pairs to examine. 
     - The last pair to examine is $(a[i],a[i+1])$, and this is when $j=i+1$. 
     - So after the loop terminates $j=i$, and $a[i]$ is the minimum in the unsorted subarray.
 - **Edge Cases**: 
-    - When the size of the unsorted subarray is 1, no work is required; 
+    - When the size of the unsorted subarray is $1$, no work is required; 
     - When $j=i$, that is when $j$ points to the first element of the unsorted subarray, we don't need to compare $(a[i-1],a[i])$, because $a[i-1]$ is not in the range that inner loop cares about.
     - For both cases, no additional code is required.
 - **Loop Variant**: the number of unexamined adjacent pairs in the unsorted subarray, which is $j-i$. 
@@ -2202,21 +2225,21 @@ for (int i = 0; i < a.length; i++) {
 ```
 
 Now for the rest of the elements:
-- The **Loop Body** of BubbleSort's inner loop is in fact very simple: exchange the two adjacent elements if they are in the wrong order.
-- The wrong order in this case is the order the violates non-decreasing order. The correct order is $a[j-1] \le a[j]$, so its negation $a[j-1]>a[j]$ is the branching condition for exchange.
-- We can use the three-variable exchange method or other methods, e.g. the XOR exchange.
-- Then what is the loop invariant? How does it relate to our loop goal? Why does exchanging adjacent elements move the minimum to the leftmost position? These are good questions that you should pause to think about and you can get inspiration from the image.
-- The key to understand this is that as we move $j$ from right to left and exchanging pairs in the wrong order, we always keep the minimum of the examined subarray at the leftmost position. 
+- The **Loop Body** of BubbleSort's inner loop is in fact very simple: swap the two adjacent elements if they are in the wrong order.
+- The wrong order in this case is the order the violates non-decreasing order. The correct order is $a[j-1] \le a[j]$, so its negation $a[j-1]>a[j]$ is the branching condition for swapping.
+- We can use the three-variable swapping method or other methods, e.g. the XOR swapping.
+- Then what is the loop invariant? How does it relate to our loop goal? Why does swapping adjacent elements move the minimum to the leftmost position? These are good questions that you should pause to think about.
+- The key to understand this is that as we move $j$ from right to left and swapping pairs in the wrong order, we always keep the minimum of the examined subarray at the leftmost position. 
 
-Now we have both the loop invariant and iteration goal:
+**Loop Elements Analysis(cont.)**. Now we have both the loop invariant and iteration goal:
 - **Iteration Goal**: make sure $a[j-1] \le a[j]$, exchange them if not, and ensure $a[j]$ is the minimum of $a[j...n-1]$.
 - **Loop Invariant**: at the start of the `#j` iteration, $a[j]$=MIN($a[j...n-1]$).
 
 **Loop Invariant Analysis**:
 - **Initialization**: initially, $j$ is $n-1$, so according to the invariant, $a[j]$=MIN($a[n-1...n-1]$), which is trivially true.
-- **Maintenance**: For all later iterations, since we only exchange $a[j-1]$ and $a[j]$ when they are in the wrong order, that is when $a[j-1]>a[j]$, so we have two cases
-    - If $a[j-1]>a[j]$, then they will be exchanged, so at the end of the iteration, $a[j-1]$ is the minimum in the unsorted subarray, because now it hold the originally value of $a[j]$. 
-    - If $a[j-1] \le a[j]$, no exchange, and since $a[j]$ is already the minimum in the subarray $a[j...n-1]$ and $a[j-1]$ is no greater than it, we can conclude that $a[j-1]$ is the minimum in the subarray $a[j-1...n-1]$. 
+- **Maintenance**: For all later iterations, since we only swap $a[j-1]$ and $a[j]$ when they are in the wrong order, that is when $a[j-1]>a[j]$, so we have two cases
+    - If $a[j-1]>a[j]$, then they will be swapped, so at the end of the iteration, $a[j-1]$ is the minimum in the unsorted subarray, because now it hold the originally value of $a[j]$. 
+    - If $a[j-1] \le a[j]$, no swapping, and since $a[j]$ is already the minimum in the subarray $a[j...n-1]$ and $a[j-1]$ is no greater than it, we can conclude that $a[j-1]$ is the minimum in the subarray $a[j-1...n-1]$. 
     - In both cases, at the start of the next iteration, `j--` has been executed, so the invariant is maintained.
 - **Termination**: after the loop terminates, $j=i$, so $a[i]$=MIN($a[i...n-1]$), accomplishing the loop goal.
 
@@ -2245,17 +2268,17 @@ void swap(int[] a, int i, int j) {
 If you look closer at the code, you could see how the use of index could be messed up:
 - Programmer could use `j = a.length` instead of `j = a.length - 1`, leading to ArrayIndexOutOfBoundException.
 - Programmer could use `j>=i` instead of `j>i`, which is fine most of the time, but leads to ArrayIndexOutOfBoundException when $i$ is 0.
-- This is why methodical analysis and implementation could help me minimize the chance of bugs.
+- This is why methodical analysis and implementation could help minimize bugs.
 
 Table for Loop Element Summary
-| Element                 | Outer Loop (i)                                              | Inner Loop (j)                    |
-| ----------------------- | ----------------------------------------------------------- | --------------------------------- |
-| **Goal**                | Sort the array                                              | Push min element left             |
-| **Invariant**           | $a[0..i-1]$ is sorted, MAX($a[0...i-1]$)<=MIN($a[i...n-1]$) | $a[j]$ = MIN($a[j..n-1]$)         |
-| **Variant?**            | $n - i$ (size of unsorted)                                  | $j - i$ (remaining comparisons)   |
-| **Control Variable**    | $i$ (start of unsorted subarray)                            | $j$ (index of pair right element) |
+| Element                 | Outer Loop (i)                                              | Inner Loop (j)                       |
+| ----------------------- | ----------------------------------------------------------- | ------------------------------------ |
+| **Goal**                | Sort the array                                              | Push min element left                |
+| **Invariant**           | $a[0..i-1]$ is sorted, MAX($a[0...i-1]$)<=MIN($a[i...n-1]$) | $a[j]$ = MIN($a[j..n-1]$)            |
+| **Variant?**            | $n - i$ (size of unsorted)                                  | $j - i$ (remaining comparisons)      |
+| **Control Variable**    | $i$ (start of unsorted subarray)                            | $j$ (index of right element of pair) |
 
-It's a good idea to document your code with the essential loop elements. How much to include in the documentation is typically a personal preference, but in general loop invariant is a must.
+It's a good idea to document your code with the essential loop elements. The extent of documentation is a personal preference, but including the loop invariant is generally very helpful.
 
 ```java
 void bubbleSort(int[] a) {
@@ -2281,9 +2304,9 @@ void bubbleSort(int[] a) {
 }
 ```
 
-As complexity analysis is not the focus of this note, we briefly mention it here.
-- Bubble Sort is in-place, with constant extra space, so the space complexity is O(1).
-- Due to the two layers of loop, the time complexity is O(n^2). The following table summarizes the complexity of comparisons and swaps. The best case corresponds to the case where the input array is already sorted in non-decreasing order, and the worst case is where the input array is sorted but in non-increasing order.
+As complexity analysis is not the focus here, we briefly mention it here.
+- Bubble Sort is in-place, with constant extra space, so the space complexity is $O(1)$.
+- Due to the two layers of loop, the time complexity is $O(n^2)$. The following table summarizes the complexity of comparisons and swaps. The best case corresponds to the case where the input array is already sorted in non-decreasing order, and the worst case is where the input array is sorted but in non-increasing order.
 
 | Metric      | Best Case    | Average Case | Worst Case |
 | ----------- | ------------ | ------------ | ---------- |
@@ -2293,9 +2316,9 @@ As complexity analysis is not the focus of this note, we briefly mention it here
 
 #### Property-Based Testing
 
-In one of the previous section, I briefly mentioned Property-Based Testing(PBT) and its relation to loop invariant. Now it's a good time to see it in action. On top of the complete implementation of BubbleSort, we can insert method calls that check the properties of the loop, in this case the loop invariant. You can modify the code to see the output to console and you can also try other test cases.
+In one of the previous section, we mentioned Property-Based Testing(PBT) and its relation to loop invariant. Now it's a good time to see it in action. On top of the complete implementation of Bubble Sort, we can insert method calls that check the properties of the loop at runtime, in this case the loop invariant. You can modify the code to see the output to console and you can also try other test cases.
 
-Indeed, we can also insert method calls that check whether the loop variant decrease for each iteration. In BubbleSort it's too straightforward, but in binary search it would be interesting.
+Indeed, we can also insert method calls that check whether the loop variant decreases each iteration. In Bubble Sort it's too straightforward, but in binary search it would be insightful.
 
 ```java
 void bubbleSort(int[] a) {
@@ -2378,12 +2401,12 @@ bubbleSortTest();
 
 #### Define Variables Wisely
 
-- I mentioned that using **Counting-Based** definition for the loop control variable is not a good idea. Here I will show one such example.
-- Suppose we want to implement BubbleSort by exchanging and selecting the maximum instead of the minimum as we did, and we choose to use the number of iterations as the loop control variable $i$. We already know in the outer loop there will be $n-1$ iteration, so let's make $i$ go from $0$ to $n-1$.
+- Earlier we noted that using **Counting-Based** definition for a loop control variable is often not ideal. Here is one such example.
+- Suppose we want to implement Bubble Sort by swapping and selecting the maximum instead of the minimum as we did above, and we choose to use the number of iterations as the loop control variable $i$. We already know in the outer loop there will be $n-1$ iteration, so let's make $i$ go from $0$ to $n-1$.
 - So in this case, the relative position of the unsorted subarray and sorted subarray is reversed: the unsorted subarray is on the left and the sorted subarray on the right.
 - Now in the inner loop, we need to push the maximum of the unsorted subarray to its rightmost position. What is the range of the unsorted subarray? Its start index is fixed as $0$, but what about the end index?
 - We have to setup equations to solve it. When $i=0$, the length of the unsorted subarray is $n$. As $i$ grows, the length of the unsorted subarray decreases, and their relation is $l=n-i$ (because the number of iterations is exactly have many elements in the unsorted subarray have been removed to the sorted subarray). Now suppose the end index of the unsorted subarray is $e$, we have $e-0+1=l=n-i$, then we have $e=n-i-1$.
-- This is why I said using the number of iterations is not the best practice. This calculation is not straightforward and error-prone. You definitely want to avoid such complication in a coding interview. The corresponding code is as below. The part `j < a.length - 1 - i` will likely stun the interviewer and make he or she confused.
+- This is why using the number of iterations is not the best practice. This calculation is not straightforward and error-prone. You definitely want to avoid such complication in a coding interview. The corresponding code is as below. The part `j < a.length - 1 - i` will likely stun the interviewer and make he or she confused.
 
 ```java
 void bubbleSortMax_(int[] a) {
@@ -2397,7 +2420,7 @@ void bubbleSortMax_(int[] a) {
 }
 ```
 
-- In fact, if we want to select the maximum instead of the minimum in BubbleSort, a better choice of the definition of $i$ is the end index of the unsorted subarray, which is the **Index-Based** definition. In this case we can iterate from $n-1$ to $0$, leading to a much cleaner and easier code.
+- In fact, if we want to select the maximum instead of the minimum in BubbleSort, a better choice of the definition of $i$ is *the end index of the unsorted subarray*, which uses the **Index-Based** definition. In this case we can iterate from $n-1$ to $0$, leading to a much cleaner and easier code.
 - We better define the loop index as something directly connected to what changes from iteration to iteration
 
 ```java
@@ -2412,17 +2435,17 @@ void bubbleSortMax(int[] a) {
 }
 ```
 
-You are encouraged to implement Bubble Sort using other Loop Control Variable definition, for example, the Variant-Based definition and you will gain more insight into the importance of choosing a good definition.
+You are encouraged to implement Bubble Sort using other Loop Control Variable definition, for example, the Variant-Based definition and you will gain more insight into how the choice of loop variable can impact the clarity and difficulty of the implementation.
 
 #### Optimization
 
 How to optimize Bubble Sort? 
 - Recall that we partition the entire array into a sorted subarray and an unsorted subarray. As part of the outer loop invariant, we are certain that the sorted subarray is indeed sorted. 
-- But in fact, during the loop, at some point, the unsorted subarray could also be sorted, because we have done work to fix the pairs in the wrong order, or perhaps it's originally sorted. In our graphical example, the whole array is already sorted when $i=3$, but terminates when $i=5$.
-- Recall the second part of the outer loop invariant: MAX($a[0...i-1]$)<=MIN($a[i...n-1]$). This implies that if the unsorted subarray is also sorted, then the entire array is sorted, and we can terminate the algorithm without executing the rest of the loop, which will swap no elements in the unsorted subarray anymore.
-- So the key of optimization falls upon whether we can easily identify that the unsorted subarray is already sorted. If you take a look at the method `isSorted()` in the Property-Based Testing section, you will likely notice that it's strikingly similar to the inner loop of Bubble Sort: if there are no pairs are in wrong order, then the entire subarray is sorted.
-- Based on the above observation, we can keep track of an additional boolean variable `swapped` which acts as a flag whether any swapping takes place in the inner loop, and if it's false after the inner loop terminates, according to our analysis, we can safely terminate the algorithm.
-- Although on average and worst the time complexity is the same as the original version, in the best case where input array is already sorted, the complexity is O(n). In reality it would run faster when the input array is partially sorted.
+- However, it’s possible that at some point during execution, the unsorted portion becomes sorted as well, because we have done work to fix the pairs in the wrong order, or perhaps it's originally partially sorted. In our graphical example, the whole array is already sorted when $i=3$, but continued until until $i=5$.
+- Recall the second part of the outer loop invariant: MAX($a[0...i-1]$)<=MIN($a[i...n-1]$). This implies that if the unsorted subarray is sorted, then the entire array is sorted, and we can safely terminate the algorithm without executing the rest of the loop, which will swap no elements in the unsorted subarray anymore.
+- So the key to optimization falls upon whether we can easily identify that the unsorted subarray is already sorted. If you take a look at the method `isSorted()` in the Property-Based Testing section, you will likely notice it's strikingly similar to the inner loop of Bubble Sort: *it checks for any adjacent pair out of order. If none are found, the subarray is sorted*.
+- Based on the above observation, we can introduce and keep track of an additional boolean variable `swapped` which acts as a flag of whether any swapping takes place in the inner loop, and if it's false after the inner loop terminates, according to our analysis, we can safely terminate the algorithm.
+- Although on average and worst the time complexity is the same as the original version, in the best case where input array is already sorted, the complexity is $O(n)$. In practice it would run faster when the input array is partially sorted.
 
 ```java
 void bubbleSortOptimized(int[] a) {
@@ -2443,88 +2466,92 @@ void bubbleSortOptimized(int[] a) {
 
 #### High-Level Design
 
-Insertion Sort is another classic sorting algorithm, and it shares some similarity with Bubble Sort. We will compare it with Bubble Sort from time to time. For the following discussions, suppose we want to sort an array in non-decreasing order. 
+Insertion Sort is another classic sorting algorithm, and it shares some similarity with Bubble Sort. We will compare them from time to time. For the following discussions, assume we want to sort an array in non-decreasing order. 
 
-**This section is not a full treatment** about sorting algorithms or even Insertion Sort specifically, we only focus on how to methodically implement it.
+*Note:* This section is not a comprehensive treatment of sorting algorithms or even Insertion Sort specifically. We are only focusing on how to methodically implement it.
 
 **High-Level Design Perspective**:
-- Insertion Sort is a simple comparison-based sorting algorithm that builds the sorted array one element at a time. The algorithm works by inserting each new element into an already sorted subarray, whose initial size is 1, until the whole array is sorted.
-- **Definition of Correct Insert Position**:
-    - How to define the correct insert position for an element?
-    - If there are duplicates in the array, there are actually multiple valid insert positions for an element, because the order between equal elements doesn't affect sortedness.
-    - The choice we pick is the position that is not only correct, but also requires minimum number of data movement. This makes the desired insert position for an element in an already sorted subarray unique if it could only grow to one direction (e.g. left or right).
+- Insertion Sort is a comparison-based sorting algorithm that builds the sorted array one element at a time. The algorithm works by inserting each new element into an already sorted subarray, whose initial size is $1$, until the whole array is sorted.
+
+**Definition of Correct Insert Position**:
+- Determining where to insert a new element in the sorted subarray is key. How to define the correct insert position for an element?
+- If the array contains duplicate values, there may be multiple valid insert positions for a given element, because the order between equal elements doesn't affect sortedness.
+- The choice we pick is the position that is not only correct, but also requires minimum number of data movement. This makes the desired insert position for an element in an already sorted subarray unique if it could only grow to one direction (e.g. left or right).
+- In the following discussion, we use the term **entry** to refer to the element each time we need to insert into a sorted subarray.
 
 <img src="img\best_insert_position.png" alt="best_insert_position.png" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
 
-- **High-Level Procedure**:
-    - Start from the second element and treat the first element as a trivially sorted portion.
-    - For each remaining element, insert it into the sorted portion:
-        - Compare it with the elements to its left.
-        - Shift all elements greater than it one position to the right to make room.
-        - Insert the current element into its correct position in the sorted portion.
-    - Repeat until all elements have been inserted into their correct positions.
-    - According to our analysis of the correct insert position, in our case, it should points to the first element larger than the new element.
-- **Analogy**: sorting playing cards
-    - A good analogy of Insertion Sort is how you might sort playing cards in your hand. 
-    - You take the cards one by one from a pile and insert each card into the correct position among those already sorted in your hand.
-    - Before and after you insert the new card in your hand, the cards are sorted.
+**High-Level Procedure**:
+- Start from the second element of the array and treat the first element as a trivially sorted portion.
+- For each remaining element, insert it into the sorted portion:
+    - Compare it with the elements to its left.
+    - Shift all elements greater than it one position to the right to make room.
+    - Insert the entry into its correct position in the sorted portion.
+- Repeat until all elements have been inserted into their correct positions.
+- According to our analysis of the correct insert position, it should points to the first element larger than the entry.
+
+**Analogy**: sorting playing cards
+- A classic analogy of Insertion Sort is how you might sort playing cards in your hand. 
+- You take the cards one by one from a pile and insert each card into the correct position among those already sorted in your hand.
+- Before and after you insert the new card in your hand, the cards are sorted. You repeat this for each new card drawn.
 
 <img src="img\insertionsort_playing_cards.png" alt="insertionsort_playing_cards.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
 
-- **Variants of Insertion Sort**:
-    - There many versions of Insertion Sort, and each version could be implemented in many ways. So don't be surprised when you see an unfamiliar implementation.
-    - This version of Insertion Sort works from left to right. Conversely, we can also work from right to left, and the whole process is a mirror version of the above steps. Notice that in this reversed direction, the best insert position points to the first element smaller than the new element.
-    - Shifting all elements greater than or equal to the element is also correct but introduce redundant data movement. In addition, doing so breaks the **stability** of the sorting algorithm, so people generally don't consider this option. 
-- The below is a graphical representation of the procedure. The grey portion doesn't participate in the later process.
+**Variants of Insertion Sort**:
+- There many variations of Insertion Sort, and each version could be implemented in many ways. So don't be surprised when you see an unfamiliar implementation that still accomplishes insertion sort.
+- The version we describe here builds the sorted subarray from left to right. Conversely, one could implement it from right to left, and the whole process is a mirror version of the above steps. Notice that in this reversed direction, the best insert position points to the first element smaller than the entry.
+- Shifting all elements *greater than or equal to* the entry is also correct but introduce redundant data movement. In addition, doing so breaks the **stability** of the sorting algorithm (equal elements could get out of their original order), so people generally don't consider this option. 
+
+The below is a graphical representation of the procedure. The grey portion is the sorted subarray involved in current insertion.
 
 <img src="img\insertionsort_visualization.png" alt="insertionsort_visualization.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
 
-Before you go on reading, please implement Insertion Sort by yourself according to the steps of the algorithm. In addition, also annotate your loop control structure and explain what invariants you’re trying to maintain. From this case study, we will skip verbose details of the thought process of implementing the algorithms.
+Before continuing, please implement Insertion Sort by yourself according to the algorithm steps above. In addition, annotate your loop structure and explain what invariants you’re trying to maintain. From this case study, we will skip verbose details of the thought process of implementing the algorithms, but focus on key points.
 
 #### Mid-Level Design
 
 **Applying Repetition**:
-- The high-level description of Insertion Sort heavily suggests looping/iteration, just like Bubble Sort.
+- Insertion Sort's high-level description heavily suggests looping/iteration, just like Bubble Sort.
 - We need to perform the insertion operations for each element in the array. Repetition of the same process for each element suggests using loop. 
-- By repeating this process, the sorted part of the array grows and the unsorted part of the array shrinks, and eventually the sorted part will be the whole array and the unsorted part will be an empty array. 
-- The insertion operation itself also requires us to compare a new element with potentially multiple existing elements in the subarray, and shifting those elements to the right, which is also repetitive and requires loop.
-- This analysis concludes that we need **two layers of nested loop**: for each element in the array, and for each insertion into a subarray.
+- By repeating this process, the sorted part of the array grows and the unsorted part of the array shrinks. Eventually the sorted part will be the whole array and the unsorted part will be an empty array. 
+- The insertion operation itself requires comparing they entry to potentially multiple existing elements in the subarray, and shifting those elements to the right, which is also repetitive and requires loop.
+- This analysis concludes that we need **two layers of loops**: for each element in the array, and for each insertion into a subarray.
 
-Insertion Sort conceptually partitions the entire array into a sorted subarray followed by an unsorted subarray. The main difference between Insertion Sort and Bubble Sort is that the operation of insertion mainly involves the sorted subarray, as we only access one element in the unsorted subarray at a time, leaving the rest untouched.
+Insertion Sort conceptually divides the array into a sorted subarray followed by an unsorted subarray. The main difference between Insertion Sort and Bubble Sort is that the operation of insertion mainly involves the sorted subarray, as we only access one element in the unsorted subarray at a time, leaving the rest untouched. Whereas Bubble Sort's primary operations happen within the unsorted subarray.
 
-By now we are pretty close to the mid-level design of the algorithm: 
-- Two nested loops, and the outer loop simply moves the boundary between the sorted and unsorted subarrays. 
-- The only lingering question about the design is how exactly do we insert the new element into a sorted subarray in the inner loop? 
+We are pretty close to the mid-level design of the algorithm: 
+- Two nested loops, and the outer loop simply moves the boundary between the sorted and unsorted subarrays, and effectively, it picks the next element to insert. 
+- The only lingering question about the design is how exactly do we insert the entry into a sorted subarray in the inner loop? 
 
 **Element Insertion**:
-- Unlike "exchange two adjacent elements if they are in the wrong order", the insertion operation could be implemented in more than one way. Although all of them achieve the same goal, there are distinction in terms of efficiency:
-- **Adjacent Swapping**: We can reuse the `swap()` function defined in the Bubble Sort to exchange the new element with elements in the sorted subarray, starting from the last/rightmost one, if they are in the wrong order, i.e. left element > right element. The exchange continues until the new element is exchanged to the correct position, and at this point the sorted subarray maintains sorted with one more element.
-- **Search while Shifting**: Instead of swapping the new element all the way to the correct position, we can adopt an shifting approach. We save the new element, start from the end of the sorted subarray, and for each element larger than the new element, shift them one position to the right(overriding that position with the value of the element). In the end, we override the value at the insert position with the new element.
-- **Search then Shifting**: We can decouple the operations of array element shifting and comparison by first comparing the new element with the elements in the sorted subarray, starting from the last/rightmost one (you can also do this in the opposite direction), until we find the insert position. And then we shift all elements in the range starting from the insert position to the end of the sorted subarray one position to the right. As a final step, we override the value at the insert position with the new element.
-- Other approaches of insertion.
+- Unlike "exchange two adjacent elements if they are in the wrong order", the insertion operation could be implemented in multiple ways. Although all of them achieve the same goal, there are distinction in terms of efficiency:
+- **Adjacent Swapping**: We could reuse the `swap()` function defined in the Bubble Sort to exchange the entry with elements in the sorted subarray, starting from the last/rightmost one, if they are in the wrong order, i.e. left element > right element. The exchange continues until the entry is in the correct position, and at this point the sorted subarray maintains sorted with one more element.
+- **Search while Shifting**: Instead of swapping the entry all the way to the correct position, we can adopt an shifting approach. We start from the end of the sorted subarray, and for each element larger than the entry, shift them one position to the right (overriding that position with the value of the element) until we reach the insert position. In the end, we override the value at the insert position with the value of the entry.
+- **Search then Shifting**: We can decouple the operations of array element shifting and comparison by first comparing the entry with the elements in the sorted subarray, starting from the last/rightmost one (you can also do this in the opposite direction), until we find the insert position. And then we shift all elements in the range starting from the insert position to the end of the sorted subarray one position to the right. As a final step, we override the value at the insert position with the value of the entry.
+- Other approaches of insertion exist too, but the above are the primary patterns.
 
-**Search while Shifting** and **Search then Shifting** are very similar in nature. For the rest of the section, we will go with **Search while Shifting**, but here we also mention how to implement **Search then Shifting**. 
+**Search while Shifting** and **Search then Shifting** are very similar in nature. For the rest of the section, we will go with **Search while Shifting**, but here we also mention how to implement **Search then Shifting** for completeness. 
 
 **Mid-Level Design** of Insertion Sort:
 - Insertion Sort partitions the entire array into two sections, a sorted subarray followed by an unsorted subarray, and it iteratively increase the size of the former while decreasing that of the latter. It has two layers of loops.
 - In the outer loop, it iterates through all elements in the array, picking the next element to insert.
-    - This makes the size of the unsorted subarray decrement by 1, and the size of the sorted subarray increment by 1 for each iteration.
-    - Depending on whether we choose to decouple element comparison and shifting or, the loop body could be different.
-- If we don't decouple comparison and shifting, then we have one inner loop.
-    - The inner loop iterates through elements in the sorted subarray from right to left, compare them with the new element and shift the old element one position to the right if it's greater than the new one. The process continues until an element no less than the new element to be inserted is found or all elements are greater than it. Finally we insert the new element to its correct insert position.
-- If we decouple comparison and shifting, then we have two inner loops.
-    - In the inner loop of element comparison, it iterates through elements in the sorted subarray from right to left, until an element no less than the new element to be inserted is found or all elements are greater than it. 
-    - In the inner loop of element shifting, we shift all elements in the subarray that are greater than the new element one position to their right, and we perform the shifting from right to left to avoid data loss. Finally we insert the new element to its correct insert position.
+    - This makes the size of the unsorted subarray decrease by 1, and the size of the sorted subarray increase by 1 for each iteration.
+    - Depending on whether we choose to decouple element comparison and shifting, the loop body will differ.
+- **Search while Shifting**: if we don't decouple comparison and shifting, then we have one inner loop.
+    - The inner loop iterates through elements in the sorted subarray from right to left, compare them with the entry and shift the old element one position to the right if it's greater than the entry. The process continues until an element no less than the entry is found or all elements are greater than it. Finally we insert the entry to its correct insert position.
+- **Search then Shifting**: if we decouple comparison and shifting, then we have two inner loops.
+    - In the first inner loop (comparison loop), it iterates through elements in the sorted subarray from right to left, until an element no less than the entry is found or all elements are greater than it. This loop determines the insertion index.
+    - In the second inner loop (shifting loop), we shift all elements in the subarray that are greater than the entry one position to their right, and we perform the shifting from right to left to avoid data loss. Finally we insert the entry to its correct insert position.
 
 ```java
-// Second Approach
+// Search while Shifting
 LoopForEachElement() {
     LoopForComparisonAndMovement();
 }
 ```
 OR
 ```java
-// Third Approach
+// Search then Shifting
 LoopForEachElement() {
     LoopFroComparison();
     LoopForMovement();
@@ -2540,24 +2567,24 @@ This design leverages the incremental nature of the algorithm: each new element 
 **Implementation Design**
 - The above image is a graphical visualization of what the outer loop does conceptually.
 - It's strikingly similar to Bubble Sort in terms of how sorted and unsorted subarrays change from iteration to iteration. 
-    - The difference is that in Bubble Sort, modification is done on the unsorted subarray, but in Insertion Sort, it's done on the sorted subarray. 
-    - In both cases, one element in the unsorted subarray is incorporated into the sorted subarray.
+    - The difference is that in Bubble Sort, the work (swapping) is done within the unsorted subarray, whereas in Insertion Sort, it's done on the sorted subarray. 
+    - In both algorithms,  each iteration takes one element from the unsorted subarray and incorporates it into the sorted subarray.
 - We don't go into lengthy discussion like in Bubble Sort anymore. For example, Loop Goal, Premise and Edge Cases are almost identical.
-- The `#0` iteration is optional, you can skip it by initializing $i$ as 1.
-- You should be able to see why using a `for` loop as the outer loop, and choosing the start index of the unsorted subarray as the definition of the Loop Control Variable $i$, that is using Index-Based definition, are good choices.
+- The `#0` iteration is optional, you can skip it by initializing $i=1$. The reason is that with $i=1$ as the initial value, we treat $a[0]$ as initially sorted and begin inserting from $a[1]$.
+- It should be evident that a `for` loop is suitable for the outer loop, and defining $i$ as the start index of the current unsorted subarray, which is equivalent to the index of the element we want to insert, is a good choice.
 
 In the following discussion, we will use $n$ to replace $a.length$ for brevity.
 
-**Loop Elements** of the outer loop:
+**Loop Elements Analysis** of the outer loop:
 - **Loop Goal**: sort $a[0...n-1]$ in non-decreasing order.
 - **Loop Premise**: $a[]$ is not `null`.
 - **Loop Initialization**: initialize $i$ to $1$ in the `for` loop header.
-  - In fact both $0$ and $1$ work. We choose $1$ because a subarray of only one element is trivially sorted, so we don't have to insert it into an empty sorted subarray. Thus the first element we need to insert is $a[1]$.
-  - It's ok if you are uncertain about this, and you can just put either value temporarily here and come back to inspect it after you finish the inner loop.
+  - In fact both $0$ and $1$ work. We choose $1$ because a subarray of only one element is trivially sorted, so we don't have to insert into an empty sorted subarray. Thus the first element we need to insert is $a[1]$.
+  - If you are uncertain about this, and you can just use either value temporarily here and come back to adjust it after you finish the inner loop.
 - **Loop Condition**: the loop continues as long as the unsorted subarray is not empty. 
   - Combined with loop termination and edge case analysis, we can use $i<n$ as loop condition.
-- **Loop Termination**: we terminate the loop when unsorted subarray is empty. 
-  - So after the loop terminates $i=n$, and the whole array is sorted.
+- **Loop Termination**: the loop terminates when unsorted subarray is empty. 
+  - So after the loop terminates, $i=n$, and the whole array is sorted.
 - **Iteration Goal**: insert $a[i]$ into $a[0...i-1]$, making $a[0...i]$ sorted.
 - **Edge Cases**: $n=0$ or $n=1$
   - Using the loop condition we picked and the initialization choice, no iteration is required and correctness is guaranteed. This also means we don't need additional code to specifically handle them.
@@ -2589,78 +2616,80 @@ void insertionSort(int[] a) {
 
 **Implementation Design**
 - The above image is a graphical visualization of what the inner loop does. After the mid-level design, the inner loop is conceptually clear, and we need to do two things at the same time:
-    - Locating the correct insert position for the new element, which is an array index.
+    - Locating the correct insert position for the entry, which is an array index.
     - Shifting all larger elements one position to the right, making room for the insertion.
-    - It's like the insert position is a gap between the original sorted subarray, and the new element fills that gap. 
+    - It's like the insert position is a gap between the original sorted subarray, and the entry fills that gap.
 - Now we just need to define appropriate variables and translate the procedure into code.
     - Most of the loop elements are straightforward, so we only discuss a few important points.
-    - The element we need to insert is $a[i]$, and the start and end indices of the sorted subarray is clear: $a[0...i-1]$. 
-    - It makes sense use a loop control variable, say $j$ to scan the subarray, which means we use it to point to element in the subarray to compare it with $a[i]$.
+    - The entry we need to insert is $a[i]$, and the start and end indices of the sorted subarray is clear: $a[0...i-1]$. 
+    - It makes sense to use a loop control variable, say $j$ to scan the subarray, which means we use it to point to each element in the subarray to compare it with $a[i]$.
+
 - **Insert Position Cases**: according to our previous discussion of the insert position, since we partition the whole array as the sorted subarray followed by the unsorted subarray, so the sorted subarray could only grow to the left. We can analyze the possibilities of insert position:
     - **Best Case**: $a[i]$ is already at the correct position, in which case $a[i]$ >= MAX($a[0...i-1]$), no data movement is required.
     - **Worst Case**: $a[i]$ needs to be inserted at the start of the subarray, in which case $a[i]$ < MIN($a[0...i-1]$), maximum data movement as all elements in the subarrays needs to be shifted. Notice that if there are elements equal to $a[i]$, it's impossible to be the worst case, because we can append $a[i]$ to the end of the elements equal to it.
-    - **Common Case**: $a[i]$ needs to be inserted into somewhere middle of the subarray with some data movement.
-- **Edge Cases**: Both bast case and worst case are both .
-    - Because the insert positions are at the two ends of the subarray, where things could easily go awry. 
+    - **Common Case**: $a[i]$ needs to be inserted into somewhere middle of the subarray with some data movement, which means some of the sorted elements greater than $a[i]$ will be shifted right, but not all of them.
+- **Edge Cases**: Both best case and worst case are edge cases.
+    - Because the insert positions are the two ends of the subarray, where things could easily go awry. 
     - As with before, it's a good practice to recognize the edge cases, but don't rush to write code for them, instead let's focus on the common cases first.
 - Below is an image summarizing the three cases.
 
 <img src="img\insertionsort_insert_position.png" alt="insertionsort_insert_position.png" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
 
-- **Temporary Variable**: You should be able to notice that except for the best case, $a[i]$ will always be overridden in the loop.
+- **Temporary Variable**: You should be able to notice that except in the best case, $a[i]$ will always be overridden in the loop during shifting.
     - But we need to access the value of $a[i]$ during the loop for comparison. In addition, after the loop terminates, we need to insert it into the correct position, so we can't afford to lose the data store at $a[i]$. 
-    - A good way to handle this is to use a temporary variable, say $entry$ to store $a[i]$ during the loop initialization.
-- **Iteration Direction**: What is the proper iteration direction? in fact both iteration direction work. But right-to-left is preferred for our approach.
+    - The standard solution is to use a temporary variable, say $entry$ to store $a[i]$ during the loop initialization. Then we use $entry$ for all comparisons, and when we find the insertion spot, we write $entry$ into that position.
+    - By doing this, we ensure the original value is not lost during shifting.
+- **Iteration Direction**: Which direction should we scan the sorted subarray for the insertion point? In fact both iteration direction work. But right-to-left is preferred for our approach.
     - The left-to-right direction starting from the first element of the subarray is only suitable for the **Search then Shifting** approach. 
-    - For example, in the common case of the above image, if we scan from left to right, both $a[0]$ and $a[1]$ don't involve in shifting, so this kind of drifts from our choice of **Search while Shifting**. 
-    - For **Search while Shifting**, we should scan from left to right, starting from the last element in the sorted subarray. In this case, every element that is larger than th new element will be compared and shifted.
-    - There is some uncertainties about the insert position for a particular new element, so we cannot say right-to-left is definitely better than left-to-right when we use **Search then Shifting**, at least in terms of the number of comparison.
-- **Definition and Range of $j$**: it's obvious that the good definition of $j$ is to the array index of elements to be compared.
-    - Like in Bubble Sort, there are other choices, but you should be able to see why use $j$ directly point to the elements to be compared with the new element is the go-to choice. 
+    - For example, in the common case of the above image, if we scan from left to right, both $a[0]$ and $a[1]$ involve in comparison but not shifting, so this kind of drifts from our choice of **Search while Shifting**. 
+    - For **Search while Shifting**, we should scan from left to right, starting from the last element in the sorted subarray. In this case, every element that is larger than th entry will be compared and shifted.
+    - There are some uncertainties about the insert position for a particular element, so we cannot say right-to-left is definitely better than left-to-right when we use **Search then Shifting**, at least in terms of the number of comparison.
+- **Definition and Range of $j$**: it's evident that the good definition of $j$ is to the array index of elements to be compared.
+    - Like in Bubble Sort, there are other choices, but you should be able to see why use $j$ directly point to the elements to be compared with the entry is the go-to choice. 
     - In addition, doing so makes $j$ directly related to the insert position we want to locate.
     - This means the range of $j$ is $[0...i-1]$, although we don't necessarily need compare all $a[0...i-1]$ with $entry$: as soon as we find an element no greater than $entry$ the loop could stop, which suggests another part of the loop condition besides checking the range of $j$.
     - Let's take a look the above three cases:
-        - For the **Best Case**, $j$ will end as $i-1$, so the insert position is $j+1$.
-        - For the **Worst Case**, since $a[0]$ is the last element to be compared with $entry$, after that comparison $j$ will be $-1$. This is ok, because the insert position is $0$, which is also $j+1$.
+        - For the **Best Case**, $j$ will end as $i-1$, and the insert position is $i=j+1$, so the entry stays in place.
+        - For the **Worst Case**, since $a[0]$ is the last element to be compared with $entry$, after that comparison $j$ will be $-1$. This is ok, because the insert position is $0$, which is also $0=j+1$.
         - For the **Common Case**, $j$ will points to an element no greater than $entry$, and in this case, the loop should terminate, and $entry$ should be inserted at $j+1$.
     - We can see in all three possible cases, after the loop terminates $j+1$ is the correct insert position. So using $j$ in this way is sound.
 - **Loop Structure Choice**: Do we use `for` loop or `while` loop? 
     - Since `for` loop and `while` loop could be converted to each other, the choice of the loop structure is not so important. 
     - What is important is to notice that, we need to access the value of $j$ to insert $entry$ after the loop terminates, which means if we use `for` loop, we cannot declare $j$ inside the `for` loop header.
-    - In addition, we also need to initialize $entry$ outside of the loop and access it after the loop. These reasons suggests using `while` loop will be more clear and easy to read.
+    - In addition, we also need to initialize $entry$ outside of the loop and access it after the loop. These reasons suggests `while` loop will be more clear and easy to read.
 
-After the above analysis, we have figured out the loop elements of the inner loop.
+**Loop Elements Analysis**. After the above analysis, we have figured out the loop elements of the inner loop.
 - **Loop Goal**: insert the element $a[i]$ into the sorted subarray $a[0 .. i-1]$ so that after insertion, $a[0 .. i]$ is sorted.
-- **Loop Premise**: the $a[0 .. i-1]$ needs to be sorted.
-    - This is guaranteed by the outer loop invariant So we can use it as a prior knowledge throughout the analysis.
+- **Loop Premise**: the $a[0 .. i-1]$ is sorted.
+    - This is guaranteed by the outer loop invariant. So we can use it as given knowledge throughout the analysis.
 - **Loop Initialization**: initialize $j$ as $i-1$ and $entry$ as $a[i]$ before the main loop.
 - **Loop Condition**: the loop continues as long as there are more elements to compare, and we haven't found an element no greater than $entry$. 
     - Combined with loop termination and edge case analysis, we see that $j \ge 0$ `AND` $a[j]>entry$ is a proper expression for loop condition.
-    - It checks two things: that we haven’t run off the left end of the array ($j \ge 0$ ensures we still have elements to check on the left side) and that the current element $a[j]$ is greater than the key (meaning the key should be inserted to the left of $a[j]$).
-    - As long as both conditions hold, the loop continues. This condition embodies the idea "while we haven't reached the beginning and the key is still smaller than the element at $a[j]$, keep shifting." 
+    - It checks two things: that we haven't run off the left end of the array ($j \ge 0$ ensures we still have elements to check on the left side) and that the entry $a[j]$ is greater than the key (meaning the key should be inserted to the left of $a[j]$).
+    - As long as both conditions hold, the loop continues. This condition embodies the idea "while we haven't reached the beginning and the key is still smaller than the entry at $a[j]$, keep shifting." 
 - **Loop Termination**: we terminate the loop when there are no more elements to compare or we find an element no greater than $entry$.
-    - For the first case, it is the worst case, and $j=-1$.
-    - For the second case, we know that $a[j] \le entry$.
-    - Either case, after the loop terminates, all elements originally in $a[j+1...i-1]$ before the shifting are larger than $entry$, and they have been already shifted to the correct position. 
-    - And according to the above analysis, $j+1$ is the correct insert position. Thus inserting $entry$ to $a[j+1]$ will make $a[0 .. i]$ is sorted. The inner loop’s job is done, and control returns to the outer loop to process the next element.
+    - For the first case, it is the worst case, and $j=-1$. $entry$ should be inserted right at $a[0]$.
+    - For the second case, we know that $a[j] \le entry$. $entry$ should be inserted right at $a[j+1]$.
+    - Either case, after the loop terminates, all elements originally in $a[j+1...i-1]$ before the shifting are larger than $entry$, and they have been already shifted to the correct position, which occupies $a[j+2...i]$. 
+    - And according to the above analysis, $j+1$ is the correct insert position. Thus inserting $entry$ to $a[j+1]$ will make $a[0 .. i]$ sorted. The inner loop’s job is done, and control returns to the outer loop to process the next element.
 - **Iteration Goal**: shift $a[j]$ one position to the right if it's greater than $entry$.
     - Inside the loop body, we already know that $a[j]>entry$. Then we know that $j+1$, the temporary gap, is not the insert position for $entry$. 
-    - So by moving a larger element out of the way to $a[j+1]$ and decrementing $j$, we continue to consider the next position as a potential candidate for insertion.
+    - So by moving a larger element $a[j]$ out of the way to $a[j+1]$ and decrementing $j$, we continue to consider the next position as a potential candidate for insertion.
 - **Edge Cases**: both best case and worst case are edge cases, and we have analyzed them in the previous discussion.
     - Even in edge cases, $j+1$ is still the correct insert position and all involved elements will be correctly shifted, so no additional code is required to handle edge cases specifically.
-- **Loop Variant**: the number of unexamined adjacent elements in the sorted subarray, which is $j+1$. 
-    - We decrease it by 1 for each iteration, so `j--` is how we update the loop control variable and make sure the loop will terminate.
-    - With each iteration, j moves closer to the beginning of the array (toward -1), guaranteeing that the loop will eventually end. Even in the worst case, the loop finishes after $i$ comparisons/shifts.
+- **Loop Variant**: the number of unexamined elements in the sorted subarray, which is $j+1$. 
+    - We decrease it by $1$ for each iteration, so `j--` is how we update the loop control variable and make sure the loop will terminate.
+    - With each iteration, $j$ moves closer to the beginning of the array, toward $-1$, guaranteeing that the loop will eventually end. Even in the worst case, the loop finishes after $i$ comparisons/shifts.
 - **Loop Invariant**: at the start of the `#j` iteration, $entry$ < MIN($a[j+2...i]$); both $a[0...j]$ and $a[j+2...i]$ are sorted, and their concatenation is the original sorted subarray $a[0...i-1]$.
     - Since we are shifting the elements in the loop, we need to note that elements in $a[j+2...i]$ during loop, are actually the elements originally in $a[j+1...i-1]$ before the loop, but are shifted one position to the right.
     - Another way to understand this invariant is that except for the yet-to-be-placed $entry$ and the one-position gap we create by shifting, the order of the other elements is still sorted, exactly as before the loop runs.
-    - **Initialization**: the invariant is initially true for the first iteration, which is when $j=i-1$ : $a[j+2...i]$ is actually $a[i+1...i]$ is an empty subarray, and $a[0...i-1]$ is sorted.
+    - **Initialization**: the invariant is initially true for the first iteration, which is when $j=i-1$ : $a[j+2...i]$ is actually $a[i+1...i]$, which is an empty subarray, and $a[0...i-1]$ is sorted.
     - **Maintenance**: during the loop execution, we know that $a[j]>entry$ according to the loop condition. The loop body will shift $a[j]$ one position to the right, which is $a[j+1]$, making $a[j+1...i]$ sorted, which are the original element of $a[j...i-1]$ in the same order before the loop. This preserves the order property for indices beyond $j$ because the element that was at $a[j]$ was greater than $entry$ and also greater than all elements to its left. At the end of the iteration, $j--$ executes and we we maintain the invariant.
     - **Termination**: After the loop terminates, $j$ could be $-1$ (in the worst case), or $i-1$ (in the best case), or between them. No matter which case, inserting $entry$ to $a[j+1]$ would make $a[0 .. i]$ sorted. 
 - **Loop Control Variable**: $j$ is the loop control variable. 
     - We use it to scan elements in the sorted subarray from right to left, and for the `#j` iteration it points to the element $a[j]$. 
     - Its initial value is $i-1$, which corresponds to the element immediately to the left of $a[i]$ in the sorted subarray.
-    - The loop moves $j$ leftwards decrementing it by $1$ for each iteration, as long as the element at $a[j]$ is greater than $entry$.
+    - The loop moves $j$ leftwards decreasing it by $1$ for each iteration, as long as the element at $a[j]$ is greater than $entry$.
     - The loop continues until $j$ reaches $-1$ or exit when $a[j] \le entry$. This ensures that the value of $j$ covers the range of $[0...i-1]$ if no such element is found, making sure we examine all elements and find the correct insert position.
 
 Now we have the framework of the inner loop as well:
@@ -2698,14 +2727,15 @@ void insertionSort(int[] a) {
 ```
 
 - If there are many equal elements, the inner loop will still shift elements that are equal to the key? 
-  - Actually, note the condition uses $a[j] > entry$ (strictly greater than). That means if an element is equal to the key, the loop stops. - Insertion Sort as typically implemented above is **stable**, that is it preserves the order of equal elements, because it doesn’t move equal elements past each other. 
-  - As an edge consideration, this ensures that the relative order of equal keys remains the same after sorting.
-- Finally, it’s worth noting the logical relationship between the inner and outer loops.
+    - Actually, note the condition uses $a[j] > entry$ (strictly greater than). That means if an element is equal to the key, the loop stops.
+    - Insertion Sort as typically implemented above is **stable**, that is it preserves the order of equal elements, because it does not change the relative order of equal elements.
+    - As an edge consideration, this ensures that the relative order of equal keys remains the same after sorting.
+- Finally, it’s worth noting how the inner and outer loops interact logically:
     - The outer loop sets up the scenario by identifying which element to insert next and maintaining that all prior elements are sorted
-    - The inner loop performs the insertion by rearranging the sorted portion to accommodate the new element. 
+    - The inner loop performs the insertion by rearranging the sorted portion to accommodate the entry. 
     - Each outer iteration uses the inner loop to ensure that the outer loop invariant continues to hold true for an expanded sorted section.
-    - Each inner iteration relies on the outer loop invariant as premise to insert the new element.
-    - In combination, these loops systematically build up a sorted array.
+    - Each inner iteration relies on the outer loop invariant as premise to insert the entry.
+    - In combination, these loops systematically build up a sorted array, element by element.
 
 Table for Loop Element Summary
 | Element                 | Outer Loop (i)                   | Inner Loop (j)                                                      |
@@ -2715,7 +2745,7 @@ Table for Loop Element Summary
 | **Variant?**            | $n - i$ (size of unsorted)       | $j+1$ (number of remaining elements)                                |
 | **Control Variable**    | $i$ (start of unsorted subarray) | $j$ (index of remaining element)                                    |
 
-Below is the annotated implementation of Insertion Sort that includes documentation comments that describe the purpose and properties of each loop (loop goal, invariant, variant, etc.), aligning with the analysis above. The documentation comments in the code help to bridge the gap between the algorithm’s formal reasoning and its implementation.
+Below is the annotated implementation of Insertion Sort that includes documentation that describe the purpose and properties of each loop (loop goal, invariant, variant, etc.), aligning with the analysis above. The comments in the code help to bridge the gap between the algorithm’s formal reasoning and its implementation.
 
 ```java
 void insertionSort(int[] a) {
@@ -2747,7 +2777,7 @@ void insertionSort(int[] a) {
 Brief complexity analysis:
 - Insertion Sort is in-place, with constant extra space, so the space complexity is O(1).
 - Due to the two layers of loop, the time complexity is $O(n^2)$. The following table summarizes the complexity of comparisons and shifts.
-- **Best Case**: If the input array is already sorted, the outer loop will still run $n-1$ times, but the inner loop will do minimal work (each time it finds that the key is larger than or equal to the last sorted element, so no shifts occur). 
+- **Best Case**: If the input array is already sorted, the outer loop will still run $n-1$ times, but the inner loop will do minimal work : each time it finds that the entry is larger than or equal to the last sorted element, so no shifts occur. 
 - **Worst Case**: If the input array is reverse sorted, the outer loop still runs $n-1$ times, but each iteration will trigger the inner loop to run all the way to the beginning of the sorted portion, making the algorithm do the maximum number of shifts, which is $O(n)$.
 
 | Metric      | Best Case    | Average Case | Worst Case |
@@ -2776,10 +2806,10 @@ OR
 a[j + 1] = a[j--];
 ```
 The above tow lines are not identical:
-- `a[j + 1] = a[j-- ]` is equivalent to the original code.
+- `a[j + 1] = a[j--]` is equivalent to the original code.
 - `a[j-- + 1] = a[j]` is not equivalent to the original code.
 
-If you are confused, you can refer to the previous section of Expression Evaluation Order. But even if one of them is equivalent to the original code, it's not recommended to use it. Yes we have one line of code less, but the readability is significantly reduced and the chances of bug increase. So please, avoid doing optimizations like this.
+If you are confused, you can refer to the previous section of Expression Evaluation Order. But even if one of them is equivalent to the original code, it's not recommended to use it. Yes we have one line of code less, but the readability is significantly reduced and the chances of bug increase. **Avoid** such micro-optimizations in your loop implementation.
 
 ##### Adjacent Swapping
 
@@ -2793,7 +2823,7 @@ void insertionSort_AdjacentSwapping(int[] a) {
 }
 ```
 
-- Adjacent Swapping Insertion Sort looks somehow similar to Bubble Sort.
+- Adjacent Swapping Insertion Sort looks similar to Bubble Sort.
 - While easier to think about, swapping can result in three assignments per step (per swap) and tends to be slower in practice than the shifting approaches, which uses one assignment per step.
 - The overall complexity are on the same level, but this approach is typically avoided in professional code.
 
@@ -2813,7 +2843,7 @@ void insertionSort_SearchThenShifting(int[] a) {
 }
 ```
 
-- Search then Shifting is similar to Search while Shifting but decouples the search/comparison and shifting processes, so you can actually scan from left to right.
+- Search then Shifting is similar to Search while Shifting but decouples the search/comparison and shifting processes, so you could scan from left to right.
 - Using two loops that scan the same range of values $[j+1...i-1]$ seems wasteful, but it can be optimized, which is typically recommended by many modern IDEs:
 
 ```java
