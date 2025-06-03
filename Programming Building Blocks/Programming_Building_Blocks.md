@@ -2809,7 +2809,7 @@ The above tow lines are not identical:
 - `a[j + 1] = a[j--]` is equivalent to the original code.
 - `a[j-- + 1] = a[j]` is not equivalent to the original code.
 
-If you are confused, you can refer to the previous section of Expression Evaluation Order. But even if one of them is equivalent to the original code, it's not recommended to use it. Yes we have one line of code less, but the readability is significantly reduced and the chances of bug increase. **Avoid** such micro-optimizations in your loop implementation.
+If you are confused, you can refer to the previous section of *Operand Evaluation Order*. But even if one of them is equivalent to the original code, it's not recommended to use it. Yes we have one line of code less, but the readability is significantly reduced and the chances of bug increase. **Avoid** such micro-optimizations in your loop implementation.
 
 ##### Adjacent Swapping
 
