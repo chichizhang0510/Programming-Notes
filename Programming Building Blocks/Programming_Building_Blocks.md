@@ -3084,7 +3084,7 @@ Checklist for Method Documentation:
 
 ## Built-In Library & Functions
 
-Below is a list of built-in library and functions that useful in competitive programming. I didn't all of the commonly used methods, because some methods like `add()` in `List` or `Set` are so commonly used, so listing them here seem redundant.
+Below is a list of built-in library and functions that useful in competitive programming. Not all of the commonly used methods are listed, because some methods like `add()` in `List` or `Set` are so commonly used, so listing them here seem redundant.
 
 - Objects
     - equals(Object a, Object b)
@@ -3300,7 +3300,7 @@ Below is a list of built-in library and functions that useful in competitive pro
 
 ## Classic Algorithms & Data Structures
 
-Every Computer Science graduate student is expected to be familiar with the following concepts of algorithms and data structures. I have also included the most relevant leetcode problems for each topic.
+Every Computer Science student is expected to be familiar with the following concepts of algorithms and data structures. Relevant leetcode problems are included for each topic.
 
 - Elementary Data Structure
 	- Stack
@@ -3447,7 +3447,7 @@ Every Computer Science graduate student is expected to be familiar with the foll
 		- [45. Jump Game II](https://leetcode.com/problems/jump-game-ii/)
 		- [435. Non-overlapping Intervals](https://leetcode.com/problems/non-overlapping-intervals/)
 
-I highly recommend that you understand and implement every one of the above algorithms or data structures. They incorporate the most classic algorithm design principles and are good programming practice. There are tons of material talking about these classic topic, and I personally used [Introduction to Algorithms](https://www.amazon.com/Introduction-Algorithms-3rd-MIT-Press/dp/0262033844 "https://www.amazon.com/introduction-algorithms-3rd-mit-press/dp/0262033844") and [Algorithms 4ed](https://www.amazon.com/Algorithms-4th-Robert-Sedgewick/dp/032157351X "https://www.amazon.com/algorithms-4th-robert-sedgewick/dp/032157351x"). 
+It's highly recommended that you understand and implement every one of the above algorithms or data structures. They incorporate the most classic algorithm design principles and are good programming practice. There are tons of material talking about these classic topic, and I personally used [Introduction to Algorithms](https://www.amazon.com/Introduction-Algorithms-3rd-MIT-Press/dp/0262033844 "https://www.amazon.com/introduction-algorithms-3rd-mit-press/dp/0262033844") and [Algorithms 4ed](https://www.amazon.com/Algorithms-4th-Robert-Sedgewick/dp/032157351X "https://www.amazon.com/algorithms-4th-robert-sedgewick/dp/032157351x"). 
 
 The following are some advanced topics that are less frequently seen in solving LeetCode problems, but some are still very useful, e.g. Binary Indexed Tree.
 
