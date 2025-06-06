@@ -1307,7 +1307,7 @@ for (int num : nums) {
 **Concept Examples**:
 - Empty array, e.g., `nums.length == 0`
 - One-element array, e.g., `nums.length == 1`
-- Loop condition false from start (zero iterations)
+- Loop continuation condition false from start (zero iterations)
 - Loop runs exactly once
 
 **Code Example**:
