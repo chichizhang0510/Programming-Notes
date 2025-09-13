@@ -142,11 +142,11 @@ if (condition_1) {
 
 For complicated branching statements, you could use a **decision tree** to visualize it. Below is an example decision tree, and each decision node (often drawn as a diamond in flowcharts) could be further broken into more branches if conditions involve multiple parts or variables. For instance, if `condition_1` is composed of $N$ boolean expressions and involves $M$ variables, that single decision can be expanded into a sub-tree exploring all combinations of those sub-expressions.
 
-<img src="img\branching_statement_as_decision_tree.png" alt="branching_statement_as_decision_tree" style="width: 70%; height: 70%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/branching_statement_as_decision_tree.png" alt="branching_statement_as_decision_tree" style="width: 70%; height: 70%; display: block; margin-left: auto; margin-right: auto;">
 
 From a mathematical perspective, **set theory** can help determine which branch executes for a given set of variable assignments, and **Venn diagrams** can illustrate how those sets overlap. For example, consider a Venn diagram for the branching logic above:
 
-<img src="img\venn_diagram_for_branching_statement.png" alt="venn_diagram_for_branching_statement" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/venn_diagram_for_branching_statement.png" alt="venn_diagram_for_branching_statement" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
 
 In this diagram, there are nine distinct regions, formally called *atomic equivalence classes*, representing different combinations of variable assignments for the branching code. Notice that the order of the branches matters when conditions overlap:
 
@@ -214,8 +214,8 @@ What about the above pair of code blocks?
 <details>
 <summary>Click to show the answer</summary>
 They are equivalent <b>only if</b> evaluating <code>condition_1</code> has no side effects. If <code>condition_1</code> does have side effects, then they are <b>not</b> equivalent.<br/>
-Even when they are logically equivalent, <code>condition_1</code> will always be evaluated twice in code>Code_Block_4</code>, so if the evaluation of <code>condition_1</code> is expensive, then <code>Code_Block_3</code> is preferred.<br/>
-In <code>Code_Block_4</code>, even though <code>condition_1</code> is evaluated in the fist <code>if</code>, the program does not store that result and will evaluate it again in the second <code>if</code>.
+Even when they are logically equivalent, <code>condition_1</code> will always be evaluated twice in <code>Code_Block_4</code>, so if the evaluation of <code>condition_1</code> is expensive, then <code>Code_Block_3</code> is preferred.<br/>
+In <code>Code_Block_4</code>, even though <code>condition_1</code> is evaluated in the first <code>if</code>, the program does not store that result and will evaluate it again in the second <code>if</code>.
 </details>
 
 **Example 3**
@@ -710,7 +710,7 @@ Consider the previous Venn diagram example, `condition_1`, `condition_2` and `co
 
 In addition, sometimes we can utilize the overlap between the conditions to improve performance.
 
-<img src="img\grading_number_line.png" alt="venn_diagram_for_branching_statement" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/grading_number_line.png" alt="venn_diagram_for_branching_statement" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
 
 Consider the above example, we want to write a program that determines the grade (`A`, `B`, `C`, `D`, `F`) of a student using the score as input. If we insist on making the branching conditions mutually exclusive, we would have something similar to the following:
 
@@ -1307,7 +1307,7 @@ for (int num : nums) {
 **Concept Examples**:
 - Empty array, e.g., `nums.length == 0`
 - One-element array, e.g., `nums.length == 1`
-- Loop condition false from start (zero iterations)
+- Loop continuation condition false from start (zero iterations)
 - Loop runs exactly once
 
 **Code Example**:
@@ -1458,7 +1458,7 @@ In the above code example, the loop invariant could be stated as bellow:
 
 ---
 
-<img src="img\loop_invariant_on_a_line.png" alt="loop_invariant_on_a_line" style="display: block; margin-left: auto; margin-right: auto;">
+<img src="img/loop_invariant_on_a_line.png" alt="loop_invariant_on_a_line" style="display: block; margin-left: auto; margin-right: auto;">
 
 **Notes**:
 - Graphically, if you imagine the loop's execution timeline, the invariant holds at those boundary points between iterations.
@@ -2001,7 +2001,7 @@ Sorting algorithms are among the most classic in computer science. **Bubble Sort
 
 This version of Bubble Sort selects the minimum element on each pass. Conversely we can also select the maximum element, and the whole process just mirrors the above steps.
 
-<img src="img\bubblesort_visualization.png" alt="bubblesort_visualization.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/bubblesort_visualization.png" alt="bubblesort_visualization.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
 
 **Algorithm Visualization**
 - The image above provides a visual representation of this procedure.
@@ -2057,7 +2057,7 @@ void bubbleSort(int[] a) {
 
 In the following discussion, let's use $n$ to denote $a.length$ for brevity.
 
-<img src="img\bubblesort_outer_loop.png" alt="bubblesort_outer_loop.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/bubblesort_outer_loop.png" alt="bubblesort_outer_loop.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
 
 **Implementation Design**
 - The above image is a graphical visualization of what the outer loop does.
@@ -2170,7 +2170,7 @@ With all the outer loop elements defined, we can proceed to implement the loop b
 
 #### Inner Loop Implementation
 
-<img src="img\bubblesort_inner_loop.png" alt="bubblesort_inner_loop.png" style="width: 40%; height: 40%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/bubblesort_inner_loop.png" alt="bubblesort_inner_loop.png" style="width: 40%; height: 40%; display: block; margin-left: auto; margin-right: auto;">
 
 **Implementation Design**
 - The above image is a graphical visualization of what the inner loop does: it compares adjacent elements and swaps them if needed.
@@ -2275,7 +2275,7 @@ Table for Loop Element Summary
 | ----------------------- | ----------------------------------------------------------- | ------------------------------------ |
 | **Goal**                | Sort the array                                              | Push min element left                |
 | **Invariant**           | $a[0..i-1]$ is sorted, MAX($a[0...i-1]$)<=MIN($a[i...n-1]$) | $a[j]$ = MIN($a[j..n-1]$)            |
-| **Variant?**            | $n - i$ (size of unsorted)                                  | $j - i$ (remaining comparisons)      |
+| **Variant**            | $n - i$ (size of unsorted)                                  | $j - i$ (remaining comparisons)      |
 | **Control Variable**    | $i$ (start of unsorted subarray)                            | $j$ (index of right element of pair) |
 
 It's a good idea to document your code with the essential loop elements. The extent of documentation is a personal preference, but including the loop invariant is generally very helpful.
@@ -2479,7 +2479,7 @@ Insertion Sort is another classic sorting algorithm, and it shares some similari
 - The choice we pick is the position that is not only correct, but also requires minimum number of data movement. This makes the desired insert position for an element in an already sorted subarray unique if it could only grow to one direction (e.g. left or right).
 - In the following discussion, we use the term **entry** to refer to the element each time we need to insert into a sorted subarray.
 
-<img src="img\best_insert_position.png" alt="best_insert_position.png" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/best_insert_position.png" alt="best_insert_position.png" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
 
 **High-Level Procedure**:
 - Start from the second element of the array and treat the first element as a trivially sorted portion.
@@ -2495,7 +2495,7 @@ Insertion Sort is another classic sorting algorithm, and it shares some similari
 - You take the cards one by one from a pile and insert each card into the correct position among those already sorted in your hand.
 - Before and after you insert the new card in your hand, the cards are sorted. You repeat this for each new card drawn.
 
-<img src="img\insertionsort_playing_cards.png" alt="insertionsort_playing_cards.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/insertionsort_playing_cards.png" alt="insertionsort_playing_cards.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
 
 **Variants of Insertion Sort**:
 - There many variations of Insertion Sort, and each version could be implemented in many ways. So don't be surprised when you see an unfamiliar implementation that still accomplishes insertion sort.
@@ -2504,7 +2504,7 @@ Insertion Sort is another classic sorting algorithm, and it shares some similari
 
 The below is a graphical representation of the procedure. The grey portion is the sorted subarray involved in current insertion.
 
-<img src="img\insertionsort_visualization.png" alt="insertionsort_visualization.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/insertionsort_visualization.png" alt="insertionsort_visualization.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
 
 Before continuing, please implement Insertion Sort by yourself according to the algorithm steps above. In addition, annotate your loop structure and explain what invariants you’re trying to maintain. From this case study, we will skip verbose details of the thought process of implementing the algorithms, but focus on key points.
 
@@ -2562,7 +2562,7 @@ This design leverages the incremental nature of the algorithm: each new element 
 
 #### Outer Loop Implementation
 
-<img src="img\insertionsort_outer_loop.png" alt="insertionsort_outer_loop.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/insertionsort_outer_loop.png" alt="insertionsort_outer_loop.png" style="width: 30%; height: 30%; display: block; margin-left: auto; margin-right: auto;">
 
 **Implementation Design**
 - The above image is a graphical visualization of what the outer loop does conceptually.
@@ -2612,7 +2612,7 @@ void insertionSort(int[] a) {
 
 #### Inner Loop Implementation
 
-<img src="img\insertionsort_inner_loop.png" alt="insertionsort_inner_loop.png" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/insertionsort_inner_loop.png" alt="insertionsort_inner_loop.png" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
 
 **Implementation Design**
 - The above image is a graphical visualization of what the inner loop does. After the mid-level design, the inner loop is conceptually clear, and we need to do two things at the same time:
@@ -2633,7 +2633,7 @@ void insertionSort(int[] a) {
     - As with before, it's a good practice to recognize the edge cases, but don't rush to write code for them, instead let's focus on the common cases first.
 - Below is an image summarizing the three cases.
 
-<img src="img\insertionsort_insert_position.png" alt="insertionsort_insert_position.png" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
+<img src="img/insertionsort_insert_position.png" alt="insertionsort_insert_position.png" style="width: 50%; height: 50%; display: block; margin-left: auto; margin-right: auto;">
 
 - **Temporary Variable**: You should be able to notice that except in the best case, $a[i]$ will always be overridden in the loop during shifting.
     - But we need to access the value of $a[i]$ during the loop for comparison. In addition, after the loop terminates, we need to insert it into the correct position, so we can't afford to lose the data store at $a[i]$. 
@@ -2742,7 +2742,7 @@ Table for Loop Element Summary
 | ----------------------- | -------------------------------- | ------------------------------------------------------------------- |
 | **Goal**                | Sort the array                   | Insert $a[i]$ into the sorted subarray                              |
 | **Invariant**           | $a[0...i-1]$ is sorted           | $entry$ < MIN($a[j+2...i]$); $a[0...j]$ and $a[j+2...i]$ are sorted |
-| **Variant?**            | $n - i$ (size of unsorted)       | $j+1$ (number of remaining elements)                                |
+| **Variant**            | $n - i$ (size of unsorted)       | $j+1$ (number of remaining elements)                                |
 | **Control Variable**    | $i$ (start of unsorted subarray) | $j$ (index of remaining element)                                    |
 
 Below is the annotated implementation of Insertion Sort that includes documentation that describe the purpose and properties of each loop (loop goal, invariant, variant, etc.), aligning with the analysis above. The comments in the code help to bridge the gap between the algorithm’s formal reasoning and its implementation.
